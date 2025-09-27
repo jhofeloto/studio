@@ -4,7 +4,7 @@ import { useFormState, useFormStatus } from "react-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 import { createProjectAction, type FormState } from "@/lib/actions";
@@ -39,6 +39,7 @@ function SubmitButton() {
 
 export function ProjectForm() {
   const { toast } = useToast();
+  const [showDialog, setShowDialog] = useState(false);
   const [formState, action] = useFormState<FormState, FormData>(createProjectAction, {
     message: "",
   });
@@ -59,12 +60,16 @@ export function ProjectForm() {
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    if (formState.message && !formState.aiResult) {
-      toast({
-        title: "Error",
-        description: formState.message,
-        variant: "destructive",
-      });
+    if (formState.message) {
+        if(formState.aiResult) {
+            setShowDialog(true);
+        } else {
+             toast({
+                title: "Error",
+                description: formState.message,
+                variant: "destructive",
+            });
+        }
     }
     if (formState.errors) {
       Object.entries(formState.errors).forEach(([name, errors]) => {
@@ -90,7 +95,9 @@ export function ProjectForm() {
           <form
             ref={formRef}
             action={action}
-            onSubmit={form.handleSubmit(() => formRef.current?.requestSubmit())}
+            onSubmit={form.handleSubmit(() => {
+              formRef.current?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }))
+            })}
             className="space-y-8"
           >
             <FormField
@@ -223,7 +230,7 @@ export function ProjectForm() {
       </CardContent>
     </Card>
 
-    <AlertDialog open={!!formState.aiResult}>
+    <AlertDialog open={showDialog} onOpenChange={setShowDialog}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle className="font-headline text-2xl text-primary">Evaluación por IA Completada</AlertDialogTitle>
@@ -248,9 +255,7 @@ export function ProjectForm() {
         <AlertDialogFooter>
           <AlertDialogAction onClick={() => {
               form.reset();
-              // This is a bit of a hack to reset the form state on the server action
-              formState.aiResult = undefined; 
-              formState.message = "";
+              setShowDialog(false);
             }}>
             Crear Otro Proyecto
             </AlertDialogAction>
