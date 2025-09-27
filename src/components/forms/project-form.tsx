@@ -111,14 +111,6 @@ export function ProjectForm({ project }: ProjectFormProps) {
           <form
             ref={formRef}
             action={formAction}
-            onSubmit={form.handleSubmit(() => {
-              // Clear errors before resubmitting
-              form.clearErrors();
-              // Create a new FormData object from the form
-              const formData = new FormData(formRef.current!);
-              // Manually call the form action
-              formAction(formData);
-            })}
             className="space-y-8"
           >
             {isEditing && <input type="hidden" name="id" value={project.id} />}
