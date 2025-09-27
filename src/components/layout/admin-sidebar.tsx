@@ -12,15 +12,13 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { CteiNexusLogo } from "../icons";
-import { LayoutDashboard, Package, Folder, Users } from "lucide-react";
+import { LayoutDashboard, Folder } from "lucide-react";
 import { Button } from "../ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/projects", icon: Folder, label: "Proyectos" },
-  { href: "/products", icon: Package, label: "Productos" },
-  { href: "/users", icon: Users, label: "Usuarios" },
 ];
 
 export function AdminSidebar() {
