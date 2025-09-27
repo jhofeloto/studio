@@ -1,10 +1,10 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useActionState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 import { createProjectAction, updateProjectAction, type FormState } from "@/lib/actions";
@@ -50,7 +50,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
 
   const action = isEditing ? updateProjectAction : createProjectAction;
 
-  const [formState, formAction] = useFormState<FormState, FormData>(action, {
+  const [formState, formAction] = useActionState<FormState, FormData>(action, {
     message: "",
   });
   
