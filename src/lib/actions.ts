@@ -52,6 +52,9 @@ async function scoreAndProcessProject(
     console.log("AI Scoring Result:", aiResult);
     
     revalidatePath("/(admin)/projects");
+    if (isEditing) {
+        revalidatePath(`/(admin)/projects/${formData.get("id")}/edit`);
+    }
 
     return {
       message: `¡Propuesta de proyecto ${isEditing ? 'actualizada' : 'creada'} y evaluada con éxito!`,
