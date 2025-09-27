@@ -30,7 +30,7 @@ export default function ProjectsPage() {
         description="Visualiza, crea y gestiona todos los proyectos de CTeI."
       >
         <Button asChild>
-          <Link href="/(admin)/projects/new">Crear Proyecto</Link>
+          <Link href="/projects/new">Crear Proyecto</Link>
         </Button>
       </PageHeader>
       <Card>

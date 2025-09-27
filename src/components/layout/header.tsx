@@ -19,7 +19,7 @@ export function Header() {
         <div className="flex flex-1 items-center justify-end space-x-2">
           <nav className="hidden md:flex items-center space-x-2">
              <Button variant="ghost" asChild>
-                <Link href="/(admin)/dashboard">Dashboard</Link>
+                <Link href="/dashboard">Dashboard</Link>
               </Button>
               <Button asChild>
                 <Link href="/login">Iniciar Sesión</Link>
@@ -34,7 +34,7 @@ export function Header() {
             </SheetTrigger>
             <SheetContent side="right">
               <div className="flex flex-col gap-4 mt-8">
-                 <Link href="/(admin)/dashboard" className="text-lg font-medium">Dashboard</Link>
+                 <Link href="/dashboard" className="text-lg font-medium">Dashboard</Link>
                  <Link href="/login" className="text-lg font-medium">Iniciar Sesión</Link>
               </div>
             </SheetContent>

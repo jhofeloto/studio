@@ -45,7 +45,7 @@ export default function DashboardPage() {
         description="Bienvenido al panel de administración de CTeI Nexus."
       >
         <Button asChild>
-          <Link href="/(admin)/projects/new">Nuevo Proyecto</Link>
+          <Link href="/projects/new">Nuevo Proyecto</Link>
         </Button>
       </PageHeader>
       

@@ -35,7 +35,7 @@ export default function LoginPage() {
             <Input id="password" type="password" />
           </div>
           <Button asChild className="w-full">
-            <Link href="/(admin)/dashboard">Iniciar Sesión</Link>
+            <Link href="/dashboard">Iniciar Sesión</Link>
           </Button>
           <Button variant="outline" className="w-full">
             Iniciar sesión con Google

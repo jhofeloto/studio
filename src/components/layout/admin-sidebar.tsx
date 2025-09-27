@@ -28,12 +28,8 @@ export function AdminSidebar() {
   const { state } = useSidebar();
 
   const getBasePath = (path: string) => {
-    const segments = path.split("/").filter(Boolean);
-    // Assumes admin path is like /(admin)/<page>
-    if (segments.length > 1) {
-        return `/${segments[1]}`;
-    }
-    return `/${segments[0]}`;
+    // This will correctly return the base path e.g. /dashboard, /projects
+    return "/" + path.split("/").filter(Boolean)[0]
   }
 
   const currentBasePath = getBasePath(pathname);
@@ -50,7 +46,7 @@ export function AdminSidebar() {
       <SidebarMenu className="flex-1 justify-start">
         {navItems.map((item) => (
           <SidebarMenuItem key={item.href}>
-            <Link href={`/(admin)${item.href}`} legacyBehavior passHref>
+            <Link href={item.href} legacyBehavior passHref>
               <SidebarMenuButton
                 isActive={currentBasePath === item.href}
                 tooltip={item.label}
