@@ -53,7 +53,7 @@ export async function createProjectAction(
     revalidatePath("/(admin)/projects");
 
     return {
-      message: "Project created and scored successfully!",
+      message: "¡Propuesta de proyecto creada y evaluada con éxito!",
       aiResult,
     };
   } catch (error) {

@@ -59,16 +59,12 @@ export function ProjectForm() {
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    if (formState.message && !formState.errors) {
-      if (formState.aiResult) {
-        // Handled by the dialog
-      } else {
-        toast({
-          title: "Error",
-          description: formState.message,
-          variant: "destructive",
-        });
-      }
+    if (formState.message && !formState.aiResult) {
+      toast({
+        title: "Error",
+        description: formState.message,
+        variant: "destructive",
+      });
     }
     if (formState.errors) {
       Object.entries(formState.errors).forEach(([name, errors]) => {
