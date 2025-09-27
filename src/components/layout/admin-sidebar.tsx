@@ -12,13 +12,15 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { CteiNexusLogo } from "../icons";
-import { LayoutDashboard, Folder } from "lucide-react";
+import { LayoutDashboard, Folder, Package, Users } from "lucide-react";
 import { Button } from "../ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/projects", icon: Folder, label: "Proyectos" },
+  { href: "/products", icon: Package, label: "Productos" },
+  { href: "/users", icon: Users, label: "Usuarios" },
 ];
 
 export function AdminSidebar() {
@@ -27,7 +29,11 @@ export function AdminSidebar() {
 
   const getBasePath = (path: string) => {
     const segments = path.split("/").filter(Boolean);
-    return `/${segments[1]}`;
+    // Assumes admin path is like /(admin)/<page>
+    if (segments.length > 1) {
+        return `/${segments[1]}`;
+    }
+    return `/${segments[0]}`;
   }
 
   const currentBasePath = getBasePath(pathname);
