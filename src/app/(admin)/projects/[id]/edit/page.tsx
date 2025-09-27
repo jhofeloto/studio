@@ -1,4 +1,5 @@
 import { PageHeader } from "@/components/admin/page-header";
+import { ProjectForm } from "@/components/forms/project-form";
 import { mockProjects } from "@/lib/mock-data";
 import { notFound } from "next/navigation";
 
@@ -20,7 +21,7 @@ export default function EditProjectPage({ params }: Props) {
         description={`Modificando los detalles del proyecto: ${project.titulo}`}
       />
       <div className="max-w-4xl mx-auto">
-        {/* El formulario del proyecto irá aquí */}
+        <ProjectForm project={project} />
       </div>
     </>
   );

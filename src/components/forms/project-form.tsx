@@ -26,27 +26,44 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import type { Project } from "@/lib/definitions";
 
-function SubmitButton() {
+function SubmitButton({ isEditing }: { isEditing?: boolean }) {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending} className="w-full sm:w-auto">
       {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-      Crear Proyecto y Evaluar con IA
+      {isEditing ? "Guardar Cambios" : "Crear Proyecto y Evaluar con IA"}
     </Button>
   );
 }
 
-export function ProjectForm() {
+type ProjectFormProps = {
+  project?: Project;
+}
+
+export function ProjectForm({ project }: ProjectFormProps) {
   const { toast } = useToast();
   const [showDialog, setShowDialog] = useState(false);
-  const [formState, action] = useFormState<FormState, FormData>(createProjectAction, {
+  
+  const isEditing = !!project;
+
+  // TODO: Implement updateProjectAction
+  const action = isEditing ? createProjectAction : createProjectAction;
+
+  const [formState, formAction] = useFormState<FormState, FormData>(action, {
     message: "",
   });
   
   const form = useForm<z.infer<typeof projectSchema>>({
     resolver: zodResolver(projectSchema),
-    defaultValues: {
+    defaultValues: project ? {
+      ...project,
+      titulo: project.titulo,
+      resumen: project.resumen,
+      presupuesto: project.presupuesto || undefined,
+      description: project.description || "",
+    } : {
       titulo: "",
       resumen: "",
       presupuesto: undefined,
@@ -63,7 +80,7 @@ export function ProjectForm() {
     if (formState.message) {
         if(formState.aiResult) {
             setShowDialog(true);
-        } else {
+        } else if (!isEditing) { // Only show toast on create if there is no AI result
              toast({
                 title: "Error",
                 description: formState.message,
@@ -81,20 +98,20 @@ export function ProjectForm() {
         }
       });
     }
-  }, [formState, form, toast]);
+  }, [formState, form, toast, isEditing]);
 
   return (
     <>
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline text-2xl">Crear Nuevo Proyecto</CardTitle>
-        <CardDescription>Rellena los detalles de tu propuesta de CTeI.</CardDescription>
+        <CardTitle className="font-headline text-2xl">{isEditing ? "Editar Proyecto" : "Crear Nuevo Proyecto"}</CardTitle>
+        <CardDescription>{isEditing ? "Modifica los detalles de la propuesta." : "Rellena los detalles de tu propuesta de CTeI."}</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form
             ref={formRef}
-            action={action}
+            action={formAction}
             onSubmit={form.handleSubmit(() => {
               formRef.current?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }))
             })}
@@ -223,7 +240,7 @@ export function ProjectForm() {
             </div>
 
             <div className="flex justify-end">
-              <SubmitButton />
+              <SubmitButton isEditing={isEditing} />
             </div>
           </form>
         </Form>
@@ -254,10 +271,12 @@ export function ProjectForm() {
         </div>
         <AlertDialogFooter>
           <AlertDialogAction onClick={() => {
-              form.reset();
+              if (!isEditing) {
+                form.reset();
+              }
               setShowDialog(false);
             }}>
-            Crear Otro Proyecto
+            {isEditing ? "Cerrar" : "Crear Otro Proyecto"}
             </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
