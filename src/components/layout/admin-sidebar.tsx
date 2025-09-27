@@ -27,12 +27,12 @@ export function AdminSidebar() {
   const pathname = usePathname();
   const { state } = useSidebar();
 
-  const getBasePath = (path: string) => {
-    // This will correctly return the base path e.g. /dashboard, /projects
-    return "/" + path.split("/").filter(Boolean)[0]
+  const isCurrentPath = (href: string) => {
+    // Exact match for /dashboard
+    if (href === '/dashboard') return pathname === href;
+    // Starts-with match for others like /projects, /projects/new, etc.
+    return pathname.startsWith(href);
   }
-
-  const currentBasePath = getBasePath(pathname);
   
   return (
     <Sidebar>
@@ -48,7 +48,7 @@ export function AdminSidebar() {
           <SidebarMenuItem key={item.href}>
             <Link href={item.href} legacyBehavior passHref>
               <SidebarMenuButton
-                isActive={currentBasePath === item.href}
+                isActive={isCurrentPath(item.href)}
                 tooltip={item.label}
               >
                 <item.icon />
