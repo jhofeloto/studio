@@ -21,7 +21,7 @@ export async function createProjectAction(
   const validatedFields = projectSchema.safeParse({
     titulo: formData.get("titulo"),
     resumen: formData.get("resumen"),
-    presupuesto: Number(formData.get("presupuesto")),
+    presupuesto: Number(formData.get("presupuesto")) || undefined,
     entidadProponente: formData.get("entidadProponente"),
     isPublic: formData.get("isPublic") === "on",
     estado: formData.get("estado"),
