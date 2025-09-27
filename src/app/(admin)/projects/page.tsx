@@ -69,7 +69,9 @@ export default function ProjectsPage() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                                 <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                                <DropdownMenuItem>Editar</DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                  <Link href={`/projects/${project.id}/edit`}>Editar</Link>
+                                </DropdownMenuItem>
                                 <DropdownMenuItem>Ver Detalles</DropdownMenuItem>
                                 <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10">Eliminar</DropdownMenuItem>
                             </DropdownMenuContent>
