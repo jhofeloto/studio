@@ -1,3 +1,28 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "proj_1",
+      "description": "A scientist looking into a microscope in a modern laboratory.",
+      "imageUrl": "https://images.unsplash.com/photo-1707944745853-b86631676829?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bGFiJTIwcmVzZWFyY2h8ZW58MHx8fHwxNzU5MDExMzAxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "lab research"
+    },
+    {
+      "id": "proj_2",
+      "description": "Abstract visualization of a neural network or AI brain.",
+      "imageUrl": "https://images.unsplash.com/photo-1591696331111-ef9586a5b17a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxhcnRpZmljaWFsJTIwaW50ZWxsaWdlbmNlfGVufDB8fHx8MTc1ODg5OTAzM3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "artificial intelligence"
+    },
+    {
+      "id": "proj_3",
+      "description": "A person holding a smartphone to take a picture of a plant in a city.",
+      "imageUrl": "https://images.unsplash.com/photo-1588908748233-96c4cd402856?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjaXRpemVuJTIwc2NpZW5jZXxlbnwwfHx8fDE3NTkwMTEzMDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "citizen science"
+    },
+    {
+      "id": "prod_1",
+      "description": "A document or scientific paper icon.",
+      "imageUrl": "https://images.unsplash.com/photo-1533230019569-ea3cb2b98b1f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxkb2N1bWVudCUyMHBhcGVyfGVufDB8fHx8MTc1ODkxNzAwOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "document paper"
+    }
+  ]
 }
