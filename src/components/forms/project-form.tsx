@@ -7,7 +7,7 @@ import { z } from "zod";
 import { useEffect, useRef, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
-import { createProjectAction, type FormState } from "@/lib/actions";
+import { createProjectAction, updateProjectAction, type FormState } from "@/lib/actions";
 import { projectSchema } from "@/lib/validations";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,7 +33,7 @@ function SubmitButton({ isEditing }: { isEditing?: boolean }) {
   return (
     <Button type="submit" disabled={pending} className="w-full sm:w-auto">
       {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-      {isEditing ? "Guardar Cambios" : "Crear Proyecto y Evaluar con IA"}
+      {isEditing ? "Guardar Cambios y Re-evaluar" : "Crear Proyecto y Evaluar con IA"}
     </Button>
   );
 }
@@ -48,8 +48,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
   
   const isEditing = !!project;
 
-  // TODO: Implement updateProjectAction
-  const action = isEditing ? createProjectAction : createProjectAction;
+  const action = isEditing ? updateProjectAction : createProjectAction;
 
   const [formState, formAction] = useFormState<FormState, FormData>(action, {
     message: "",
@@ -80,7 +79,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
     if (formState.message) {
         if(formState.aiResult) {
             setShowDialog(true);
-        } else if (!isEditing) { // Only show toast on create if there is no AI result
+        } else {
              toast({
                 title: "Error",
                 description: formState.message,
@@ -98,7 +97,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
         }
       });
     }
-  }, [formState, form, toast, isEditing]);
+  }, [formState, form, toast]);
 
   return (
     <>
@@ -113,10 +112,16 @@ export function ProjectForm({ project }: ProjectFormProps) {
             ref={formRef}
             action={formAction}
             onSubmit={form.handleSubmit(() => {
-              formRef.current?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }))
+              // Clear errors before resubmitting
+              form.clearErrors();
+              // Create a new FormData object from the form
+              const formData = new FormData(formRef.current!);
+              // Manually call the form action
+              formAction(formData);
             })}
             className="space-y-8"
           >
+            {isEditing && <input type="hidden" name="id" value={project.id} />}
             <FormField
               control={form.control}
               name="titulo"

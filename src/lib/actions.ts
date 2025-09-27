@@ -14,7 +14,8 @@ export type FormState = {
   };
 };
 
-export async function createProjectAction(
+// This is a shared function that can be used for both create and update.
+async function scoreAndProcessProject(
   prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
@@ -34,8 +35,9 @@ export async function createProjectAction(
       errors: validatedFields.error.flatten().fieldErrors,
     };
   }
-
+  
   const { titulo, resumen, presupuesto, description } = validatedFields.data;
+  const isEditing = formData.get("id") !== null;
 
   try {
     const aiResult = await aiScoreProjectProposal({
@@ -46,14 +48,13 @@ export async function createProjectAction(
     });
 
     // Here you would typically save the project to the database
-    // For now, we'll just log it and return the AI result.
-    console.log("Project created:", validatedFields.data);
+    console.log(`Project ${isEditing ? 'updated' : 'created'}:`, validatedFields.data);
     console.log("AI Scoring Result:", aiResult);
     
     revalidatePath("/(admin)/projects");
 
     return {
-      message: "¡Propuesta de proyecto creada y evaluada con éxito!",
+      message: `¡Propuesta de proyecto ${isEditing ? 'actualizada' : 'creada'} y evaluada con éxito!`,
       aiResult,
     };
   } catch (error) {
@@ -63,3 +64,6 @@ export async function createProjectAction(
     };
   }
 }
+
+export const createProjectAction = scoreAndProcessProject;
+export const updateProjectAction = scoreAndProcessProject;
