@@ -237,6 +237,10 @@ export function ProjectForm() {
         </AlertDialogHeader>
         <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-4">
             <div className="space-y-2">
+                <h3 className="font-semibold font-headline">Puntaje General</h3>
+                <p className="text-3xl font-bold text-primary">{formState.aiResult?.score}/100</p>
+            </div>
+            <div className="space-y-2">
                 <h3 className="font-semibold font-headline">Resumen del Proyecto</h3>
                 <p className="text-sm text-muted-foreground">{formState.aiResult?.summary}</p>
             </div>
