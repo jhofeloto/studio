@@ -23,7 +23,6 @@ export default function LoginPage() {
               id="email"
               type="email"
               placeholder="m@example.com"
-              required
             />
           </div>
           <div className="grid gap-2">
@@ -33,10 +32,10 @@ export default function LoginPage() {
                 ¿Olvidaste tu contraseña?
               </Link>
             </div>
-            <Input id="password" type="password" required />
+            <Input id="password" type="password" />
           </div>
-          <Button type="submit" className="w-full">
-            Iniciar Sesión
+          <Button asChild className="w-full">
+            <Link href="/(admin)/dashboard">Iniciar Sesión</Link>
           </Button>
           <Button variant="outline" className="w-full">
             Iniciar sesión con Google
