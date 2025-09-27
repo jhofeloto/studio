@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge";
 import { mockProjects } from "@/lib/mock-data";
+import { ProjectStatusChart } from "@/components/admin/project-status-chart";
+import { ProjectStatus } from "@/lib/definitions";
 
 const stats = [
     { title: "Presupuesto Total", value: "$12,345,678", change: "+12.5%", icon: DollarSign },
@@ -23,6 +25,19 @@ const stats = [
 
 export default function DashboardPage() {
     const recentProjects = mockProjects.slice(0, 5);
+    const projectStatusCounts = mockProjects.reduce((acc, project) => {
+      acc[project.estado] = (acc[project.estado] || 0) + 1;
+      return acc;
+    }, {} as Record<ProjectStatus, number>);
+
+    const chartData = [
+      { status: 'Propuesto', count: projectStatusCounts.PROPUESTO || 0 },
+      { status: 'En Curso', count: projectStatusCounts.EN_CURSO || 0 },
+      { status: 'Finalizado', count: projectStatusCounts.FINALIZADO || 0 },
+      { status: 'Cancelado', count: projectStatusCounts.CANCELADO || 0 },
+    ];
+
+
   return (
     <>
       <PageHeader
@@ -70,7 +85,7 @@ export default function DashboardPage() {
                            <div className="font-medium">{project.titulo}</div>
                            <div className="text-sm text-muted-foreground">{project.entidadProponente}</div>
                          </TableCell>
-                         <TableCell><Badge variant="outline">{project.estado}</Badge></TableCell>
+                         <TableCell><Badge variant="outline">{project.estado.replace('_', ' ')}</Badge></TableCell>
                          <TableCell className="text-right">{project.presupuesto ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(project.presupuesto) : '-'}</TableCell>
                        </TableRow>
                     ))}
@@ -80,13 +95,13 @@ export default function DashboardPage() {
         </Card>
         <Card className="lg:col-span-3">
           <CardHeader>
-            <CardTitle>Resumen</CardTitle>
+            <CardTitle>Resumen de Proyectos</CardTitle>
             <CardDescription>
-              Un resumen de los proyectos y su estado.
+              Distribución de proyectos por estado actual.
             </CardDescription>
           </CardHeader>
           <CardContent>
-             <p className="text-sm text-muted-foreground">Chart component would go here.</p>
+             <ProjectStatusChart data={chartData} />
           </CardContent>
         </Card>
       </div>
