@@ -46,7 +46,7 @@ export function AdminSidebar() {
       <SidebarMenu className="flex-1 justify-start">
         {navItems.map((item) => (
           <SidebarMenuItem key={item.href}>
-            <Link href={item.href} legacyBehavior passHref>
+            <Link href={item.href}>
               <SidebarMenuButton
                 isActive={isCurrentPath(item.href)}
                 tooltip={item.label}
