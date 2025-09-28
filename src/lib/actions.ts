@@ -48,8 +48,14 @@ async function scoreAndProcessProject(
     });
 
     // Here you would typically save the project to the database
-    console.log(`Project ${isEditing ? 'updated' : 'created'}:`, validatedFields.data);
-    console.log("AI Scoring Result:", aiResult);
+    // We are logging it to simulate the save operation
+    const projectDataToSave = {
+      ...validatedFields.data,
+      aiScore: aiResult.score,
+      aiSummary: aiResult.summary,
+      aiRationale: aiResult.rationale,
+    };
+    console.log(`Project ${isEditing ? 'updated' : 'created'}:`, projectDataToSave);
     
     revalidatePath("/(admin)/projects");
     if (isEditing) {

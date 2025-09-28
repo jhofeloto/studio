@@ -1,3 +1,4 @@
+
 import { PageHeader } from "@/components/admin/page-header";
 import { Button } from "@/components/ui/button";
 import { mockProjects } from "@/lib/mock-data";
@@ -11,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, Star } from "lucide-react";
 import Link from 'next/link';
 import {
     DropdownMenu,
@@ -44,7 +45,7 @@ export default function ProjectsPage() {
                     <TableHead>Título</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead>Investigador Principal</TableHead>
-                    <TableHead>Presupuesto</TableHead>
+                    <TableHead className="text-right">Puntaje IA</TableHead>
                     <TableHead>
                     <span className="sr-only">Acciones</span>
                     </TableHead>
@@ -58,7 +59,12 @@ export default function ProjectsPage() {
                             <Badge variant="outline">{project.estado.replace("_", " ")}</Badge>
                         </TableCell>
                         <TableCell>{project.leadInvestigator.nombre} {project.leadInvestigator.apellidos}</TableCell>
-                        <TableCell>{project.presupuesto ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(project.presupuesto) : '-'}</TableCell>
+                        <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                                <Star className="h-4 w-4 text-amber-400" />
+                                <span className="font-bold">{project.aiScore ?? '-'}</span>
+                            </div>
+                        </TableCell>
                         <TableCell>
                             <DropdownMenu>
                             <DropdownMenuTrigger asChild>

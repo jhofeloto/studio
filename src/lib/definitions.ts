@@ -78,4 +78,7 @@ export type Project = {
   attachments: Attachment[];
   description?: string;
   imageId: string;
+  aiScore?: number;
+  aiSummary?: string;
+  aiRationale?: string;
 };

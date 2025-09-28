@@ -40,6 +40,9 @@ export const mockProjects: Project[] = [
     attachments: [],
     description: '## Metodología\n\nUtilizaremos un enfoque de química computacional para predecir posibles estructuras cristalinas, seguido de síntesis en estado sólido y caracterización mediante difracción de rayos X y mediciones de resistividad.',
     imageId: 'proj_1',
+    aiScore: 95,
+    aiSummary: 'Proyecto altamente innovador con potencial disruptivo.',
+    aiRationale: 'El proyecto aborda un desafío científico fundamental con un enfoque metodológico sólido y un alto potencial de impacto tecnológico.'
   },
   {
     id: 'proj-2',
@@ -58,6 +61,9 @@ export const mockProjects: Project[] = [
     attachments: [],
     description: '## Objetivos\n\n1.  Crear una base de datos anonimizada de IRM y datos genómicos.\n2.  Entrenar un modelo de red neuronal convolucional (CNN).\n3.  Validar el modelo con un conjunto de datos independiente.',
     imageId: 'proj_2',
+    aiScore: 88,
+    aiSummary: 'Propuesta sólida con un enfoque claro en un problema de salud relevante.',
+    aiRationale: 'La metodología es clara y utiliza tecnología de punta. El impacto potencial en la salud pública es significativo.'
   },
   {
     id: 'proj-3',
@@ -76,6 +82,9 @@ export const mockProjects: Project[] = [
     attachments: [],
     description: '## Impacto\n\nEl proyecto ha generado más de 50,000 observaciones y ha sido fundamental para la creación de dos nuevas áreas de conservación urbana.',
     imageId: 'proj_3',
+    aiScore: 92,
+    aiSummary: 'Excelente iniciativa de ciencia ciudadana con impacto demostrado.',
+    aiRationale: 'El proyecto logró una alta participación y generó datos valiosos con un presupuesto modesto. El impacto social y científico es evidente.'
   },
   {
     id: 'proj-4',
@@ -94,6 +103,9 @@ export const mockProjects: Project[] = [
     attachments: [],
     description: '## Fase Actual\n\nActualmente en la fase de desarrollo del contrato inteligente y la integración con sensores IoT en las fincas piloto.',
     imageId: 'proj_4',
+    aiScore: 78,
+    aiSummary: 'Proyecto interesante con aplicación práctica en agrotech.',
+    aiRationale: 'El uso de blockchain es pertinente para el problema, aunque la ejecución presenta desafíos técnicos que deben ser gestionados cuidadosamente.'
   },
 ];
 
