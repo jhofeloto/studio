@@ -200,12 +200,12 @@ export function ProjectForm({ project }: ProjectFormProps) {
                     <FormLabel>Estado</FormLabel>
                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <>
+                        <div>
                           <input type="hidden" {...field} />
                           <SelectTrigger>
                             <SelectValue placeholder="Selecciona estado" />
                           </SelectTrigger>
-                        </>
+                        </div>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="PROPUESTO">Propuesto</SelectItem>
