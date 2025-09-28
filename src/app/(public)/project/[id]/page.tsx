@@ -1,3 +1,4 @@
+
 import { mockProjects } from '@/lib/mock-data';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
@@ -5,8 +6,10 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, DollarSign, FlaskConical, User, Building } from 'lucide-react';
+import { Calendar, DollarSign, FlaskConical, User, Building, Paperclip, Download } from 'lucide-react';
 import { ProductCard } from '@/components/public/product-card';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 type Props = {
   params: { id: string };
@@ -23,6 +26,15 @@ export default function ProjectDetailsPage({ params }: Props) {
     imageUrl: `https://picsum.photos/seed/${project.id}/1200/400`,
     imageHint: "science technology",
   };
+
+  const formatBytes = (bytes: number, decimals = 2) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+  }
 
   return (
     <article>
@@ -70,6 +82,32 @@ export default function ProjectDetailsPage({ params }: Props) {
               </CardContent>
             </Card>
           )}
+
+           {project.attachments.length > 0 && (
+              <Card>
+                <CardHeader>
+                    <CardTitle className='font-headline'>Archivos Adjuntos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <ul className="space-y-3">
+                        {project.attachments.map(att => (
+                            <li key={att.id} className="flex items-center justify-between p-3 rounded-md border">
+                                <div className='flex items-center gap-3'>
+                                    <Paperclip className="h-5 w-5 text-muted-foreground" />
+                                    <div>
+                                        <p className="text-sm font-medium">{att.originalName}</p>
+                                        <p className="text-xs text-muted-foreground">{formatBytes(att.size)}</p>
+                                    </div>
+                                </div>
+                                <Button asChild variant="outline" size="icon">
+                                    <Link href={att.url}><Download className="h-4 w-4" /></Link>
+                                </Button>
+                            </li>
+                        ))}
+                    </ul>
+                </CardContent>
+              </Card>
+           )}
 
            {project.products.length > 0 && (
             <div>

@@ -75,7 +75,6 @@ export function ProjectForm({ project }: ProjectFormProps) {
     },
   });
 
-  const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     if (formState.message) {
@@ -111,7 +110,6 @@ export function ProjectForm({ project }: ProjectFormProps) {
       <CardContent>
         <Form {...form}>
           <form
-            ref={formRef}
             action={formAction}
             className="space-y-8"
           >
@@ -191,6 +189,19 @@ export function ProjectForm({ project }: ProjectFormProps) {
               )}
             />
 
+            <FormItem>
+                <FormLabel>Archivos Adjuntos</FormLabel>
+                <FormControl>
+                    <div className="border border-dashed rounded-lg p-6 text-center text-muted-foreground">
+                        <p>La carga de archivos se habilitará próximamente.</p>
+                        <Input type="file" className="hidden" disabled />
+                    </div>
+                </FormControl>
+                <FormDescription>
+                    Aquí podrás adjuntar documentos relevantes para tu propuesta.
+                </FormDescription>
+            </FormItem>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
               <FormField
                 control={form.control}
@@ -201,8 +212,8 @@ export function ProjectForm({ project }: ProjectFormProps) {
                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <div>
-                          <input type="hidden" {...field} />
-                          <SelectTrigger>
+                           <input type="hidden" name={field.name} value={field.value} />
+                           <SelectTrigger>
                             <SelectValue placeholder="Selecciona estado" />
                           </SelectTrigger>
                         </div>

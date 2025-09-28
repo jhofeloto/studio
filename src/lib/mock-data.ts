@@ -1,5 +1,5 @@
 
-import type { User, Project, Product, UserRole, ProjectStatus, ProductType } from './definitions';
+import type { User, Project, Product, UserRole, ProjectStatus, ProductType, Attachment } from './definitions';
 
 export const mockUsers: User[] = [
   { id: 'user-1', email: 'admin@ctei.com', nombre: 'Admin', apellidos: 'Nexus', role: 'ADMINISTRADOR', isActive: true, organizacion: 'CTeI' },
@@ -22,6 +22,21 @@ const generateProducts = (projectId: string, count: number): Product[] => {
   }));
 };
 
+const generateAttachments = (relatedId: string, relatedType: 'PROJECT' | 'PRODUCT', count: number): Attachment[] => {
+  return Array.from({ length: count }, (_, i) => ({
+    id: `att-${relatedId}-${i+1}`,
+    filename: `documento-anexo-${i+1}.pdf`,
+    originalName: `Anexo Importante ${i+1}.pdf`,
+    mimeType: 'application/pdf',
+    size: (i + 1) * 350 * 1024, // size in bytes
+    url: '#',
+    relatedId,
+    relatedType,
+    uploadedAt: new Date(),
+  }));
+}
+
+
 export const mockProjects: Project[] = [
   {
     id: 'proj-1',
@@ -37,7 +52,7 @@ export const mockProjects: Project[] = [
     leadInvestigator: mockUsers.find(u => u.id === 'user-2')!,
     collaborators: [],
     products: generateProducts('proj-1', 2),
-    attachments: [],
+    attachments: generateAttachments('proj-1', 'PROJECT', 2),
     description: '## Metodología\n\nUtilizaremos un enfoque de química computacional para predecir posibles estructuras cristalinas, seguido de síntesis en estado sólido y caracterización mediante difracción de rayos X y mediciones de resistividad.',
     imageId: 'proj_1',
     aiScore: 95,
@@ -79,7 +94,7 @@ export const mockProjects: Project[] = [
     leadInvestigator: mockUsers.find(u => u.id === 'user-2')!,
     collaborators: [],
     products: generateProducts('proj-3', 3),
-    attachments: [],
+    attachments: generateAttachments('proj-3', 'PROJECT', 1),
     description: '## Impacto\n\nEl proyecto ha generado más de 50,000 observaciones y ha sido fundamental para la creación de dos nuevas áreas de conservación urbana.',
     imageId: 'proj_3',
     aiScore: 92,
