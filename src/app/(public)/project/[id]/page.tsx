@@ -19,7 +19,7 @@ export default function ProjectDetailsPage({ params }: Props) {
     notFound();
   }
   
-  const placeholder = PlaceHolderImages.find(p => p.id === 'proj_1') ?? {
+  const placeholder = PlaceHolderImages.find(p => p.id === project.imageId) ?? {
     imageUrl: `https://picsum.photos/seed/${project.id}/1200/400`,
     imageHint: "science technology",
   };
@@ -61,7 +61,7 @@ export default function ProjectDetailsPage({ params }: Props) {
              <Card>
               <CardHeader>
                 <CardTitle className='font-headline'>Descripción Detallada</CardTitle>
-              </CardHeader>
+              </Header>
               <CardContent>
                 <div
                     className="prose prose-stone dark:prose-invert max-w-none"

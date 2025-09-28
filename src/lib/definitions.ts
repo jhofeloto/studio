@@ -58,6 +58,7 @@ export type Product = {
   isPublic: boolean;
   createdAt: Date;
   attachments: Attachment[];
+  imageId: string;
 };
 
 export type Project = {
@@ -76,4 +77,5 @@ export type Project = {
   products: Product[];
   attachments: Attachment[];
   description?: string;
+  imageId: string;
 };

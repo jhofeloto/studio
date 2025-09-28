@@ -18,6 +18,7 @@ const generateProducts = (projectId: string, count: number): Product[] => {
     isPublic: true,
     createdAt: new Date(),
     attachments: [],
+    imageId: `prod_${(i % 2) + 1}`,
   }));
 };
 
@@ -37,7 +38,8 @@ export const mockProjects: Project[] = [
     collaborators: [],
     products: generateProducts('proj-1', 2),
     attachments: [],
-    description: '## Metodología\n\nUtilizaremos un enfoque de química computacional para predecir posibles estructuras cristalinas, seguido de síntesis en estado sólido y caracterización mediante difracción de rayos X y mediciones de resistividad.'
+    description: '## Metodología\n\nUtilizaremos un enfoque de química computacional para predecir posibles estructuras cristalinas, seguido de síntesis en estado sólido y caracterización mediante difracción de rayos X y mediciones de resistividad.',
+    imageId: 'proj_1',
   },
   {
     id: 'proj-2',
@@ -54,7 +56,8 @@ export const mockProjects: Project[] = [
     collaborators: [],
     products: generateProducts('proj-2', 1),
     attachments: [],
-    description: '## Objetivos\n\n1.  Crear una base de datos anonimizada de IRM y datos genómicos.\n2.  Entrenar un modelo de red neuronal convolucional (CNN).\n3.  Validar el modelo con un conjunto de datos independiente.'
+    description: '## Objetivos\n\n1.  Crear una base de datos anonimizada de IRM y datos genómicos.\n2.  Entrenar un modelo de red neuronal convolucional (CNN).\n3.  Validar el modelo con un conjunto de datos independiente.',
+    imageId: 'proj_2',
   },
   {
     id: 'proj-3',
@@ -71,7 +74,8 @@ export const mockProjects: Project[] = [
     collaborators: [],
     products: generateProducts('proj-3', 3),
     attachments: [],
-    description: '## Impacto\n\nEl proyecto ha generado más de 50,000 observaciones y ha sido fundamental para la creación de dos nuevas áreas de conservación urbana.'
+    description: '## Impacto\n\nEl proyecto ha generado más de 50,000 observaciones y ha sido fundamental para la creación de dos nuevas áreas de conservación urbana.',
+    imageId: 'proj_3',
   },
   {
     id: 'proj-4',
@@ -88,7 +92,8 @@ export const mockProjects: Project[] = [
     collaborators: [],
     products: generateProducts('proj-4', 1),
     attachments: [],
-    description: '## Fase Actual\n\nActualmente en la fase de desarrollo del contrato inteligente y la integración con sensores IoT en las fincas piloto.'
+    description: '## Fase Actual\n\nActualmente en la fase de desarrollo del contrato inteligente y la integración con sensores IoT en las fincas piloto.',
+    imageId: 'proj_4',
   },
 ];
 

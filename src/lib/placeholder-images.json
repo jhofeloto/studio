@@ -3,26 +3,38 @@
     {
       "id": "proj_1",
       "description": "A scientist looking into a microscope in a modern laboratory.",
-      "imageUrl": "https://images.unsplash.com/photo-1707944745853-b86631676829?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bGFiJTIwcmVzZWFyY2h8ZW58MHx8fHwxNzU5MDExMzAxfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "lab research"
+      "imageUrl": "https://images.unsplash.com/photo-1579165466949-3180a3d056d5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzY2llbmNlJTIwbGFifGVufDB8fHx8MTc1OTA0NTE2Nnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "science lab"
     },
     {
       "id": "proj_2",
       "description": "Abstract visualization of a neural network or AI brain.",
-      "imageUrl": "https://images.unsplash.com/photo-1591696331111-ef9586a5b17a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxhcnRpZmljaWFsJTIwaW50ZWxsaWdlbmNlfGVufDB8fHx8MTc1ODg5OTAzM3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1539683255143-73a6b838b106?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxhcnRpZmljaWFsJTIwaW50ZWxsaWdlbmNlfGVufDB8fHx8MTc1OTA0NTIwN3ww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "artificial intelligence"
     },
     {
       "id": "proj_3",
       "description": "A person holding a smartphone to take a picture of a plant in a city.",
-      "imageUrl": "https://images.unsplash.com/photo-1588908748233-96c4cd402856?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjaXRpemVuJTIwc2NpZW5jZXxlbnwwfHx8fDE3NTkwMTEzMDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1618493643486-d4c5163b281f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxjaXRpemVuJTIwc2NpZW5jZXxlbnwwfHx8fDE3NTkwNDUyMzB8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "citizen science"
+    },
+    {
+      "id": "proj_4",
+      "description": "Close-up of coffee beans with a digital overlay of a blockchain network.",
+      "imageUrl": "https://images.unsplash.com/photo-1559441221-930e1d10a8ea?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxibG9ja2NoYWluJTIwY29mZmVlfGVufDB8fHx8MTc1OTA0NTMwNHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "blockchain coffee"
     },
     {
       "id": "prod_1",
       "description": "A document or scientific paper icon.",
-      "imageUrl": "https://images.unsplash.com/photo-1533230019569-ea3cb2b98b1f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxkb2N1bWVudCUyMHBhcGVyfGVufDB8fHx8MTc1ODkxNzAwOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkb2N1bWVudCUyMHBhcGVyfGVufDB8fHx8MTc1OTA0NTMyN3ww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "document paper"
+    },
+    {
+      "id": "prod_2",
+      "description": "Code on a screen, representing a software product.",
+      "imageUrl": "https://images.unsplash.com/photo-1542831371-29b0f74f9713?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzb2Z0d2FyZSUyMGNvZGV8ZW58MHx8fHwxNzU5MDQ1MzU1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "software code"
     }
   ]
 }
