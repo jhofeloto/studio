@@ -6,7 +6,7 @@ import { useFormStatus } from "react-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useActionState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Loader2 } from "lucide-react";
+import { Loader2, Trash2, UploadCloud } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,7 +29,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import type { Project } from "@/lib/definitions";
+import type { Project, Attachment } from "@/lib/definitions";
+import { FileItem } from "../file-item";
 
 function SubmitButton({ isEditing }: { isEditing?: boolean }) {
   const { pending } = useFormStatus();
@@ -45,9 +46,21 @@ type ProjectFormProps = {
   project?: Project;
 }
 
+// Helper to create a File object from an Attachment, for consistent display
+const attachmentToFile = (att: Attachment): File => {
+  const file = new File([], att.originalName, { type: att.mimeType });
+  // We add custom properties to match the structure we need
+  Object.defineProperties(file, {
+    'size': { value: att.size, writable: false },
+  });
+  return file;
+};
+
 export function ProjectForm({ project }: ProjectFormProps) {
   const { toast } = useToast();
   const [showDialog, setShowDialog] = useState(false);
+  const [stagedFiles, setStagedFiles] = useState<File[]>([]);
+  const [existingAttachments, setExistingAttachments] = useState<Attachment[]>(project?.attachments || []);
   
   const isEditing = !!project;
 
@@ -76,6 +89,20 @@ export function ProjectForm({ project }: ProjectFormProps) {
     },
   });
 
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    setStagedFiles(prevFiles => [...prevFiles, ...files]);
+    // Clear the input value to allow selecting the same file again
+    event.target.value = "";
+  };
+
+  const removeStagedFile = (index: number) => {
+    setStagedFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
+  };
+
+  const removeExistingAttachment = (index: number) => {
+    setExistingAttachments(prevAtts => prevAtts.filter((_, i) => i !== index));
+  }
 
   useEffect(() => {
     if (formState.message) {
@@ -190,17 +217,37 @@ export function ProjectForm({ project }: ProjectFormProps) {
               )}
             />
 
-            <FormItem>
+             <FormItem>
                 <FormLabel>Archivos Adjuntos</FormLabel>
                 <FormControl>
-                    <div className="border border-dashed rounded-lg p-6 text-center text-muted-foreground">
-                        <p>La carga de archivos se habilitará próximamente.</p>
-                        <Input type="file" className="hidden" disabled />
-                    </div>
+                    <label htmlFor="file-upload" className="relative cursor-pointer block w-full border-2 border-dashed rounded-lg p-6 text-center text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+                        <UploadCloud className="mx-auto h-12 w-12" />
+                        <span className="mt-2 block text-sm font-semibold">Haz clic para cargar o arrastra y suelta</span>
+                        <span className="mt-1 block text-xs">PDF, DOCX, etc. (max. 10MB c/u)</span>
+                        <Input id="file-upload" name="attachments" type="file" className="sr-only" multiple onChange={handleFileChange} />
+                    </label>
                 </FormControl>
                 <FormDescription>
-                    Aquí podrás adjuntar documentos relevantes para tu propuesta.
+                    {stagedFiles.length > 0 || existingAttachments.length > 0 ? 'Archivos listos para el proyecto.' : 'Aquí podrás adjuntar documentos relevantes para tu propuesta.'}
                 </FormDescription>
+                 {(stagedFiles.length > 0 || existingAttachments.length > 0) && (
+                    <div className="mt-4 space-y-3">
+                         {existingAttachments.map((att, index) => (
+                          <FileItem 
+                            key={`existing-${att.id}`} 
+                            file={attachmentToFile(att)} 
+                            onRemove={() => removeExistingAttachment(index)} 
+                          />
+                        ))}
+                        {stagedFiles.map((file, index) => (
+                           <FileItem 
+                            key={`staged-${index}`} 
+                            file={file} 
+                            onRemove={() => removeStagedFile(index)} 
+                          />
+                        ))}
+                    </div>
+                )}
             </FormItem>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
@@ -246,6 +293,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
                       <Switch
                         checked={field.value}
                         onCheckedChange={field.onChange}
+                        name="isPublic"
                       />
                     </FormControl>
                   </FormItem>
@@ -287,6 +335,8 @@ export function ProjectForm({ project }: ProjectFormProps) {
           <AlertDialogAction onClick={() => {
               if (!isEditing) {
                 form.reset();
+                setStagedFiles([]);
+                setExistingAttachments([]);
               }
               setShowDialog(false);
             }}>
