@@ -2,11 +2,10 @@
 
 "use client";
 
-import { useFormStatus } from "react-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState } from "react";
 import { useActionState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -19,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Trash2, UploadCloud } from "lucide-react";
+import { Loader2, Star, UploadCloud } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,7 +32,7 @@ import type { Project, Attachment } from "@/lib/definitions";
 import { FileItem } from "../file-item";
 
 function SubmitButton({ isEditing }: { isEditing?: boolean }) {
-  const { pending } = useFormStatus();
+  const { pending } = useActionState(updateProjectAction, { message: "" });
   return (
     <Button type="submit" disabled={pending} className="w-full sm:w-auto">
       {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
@@ -250,7 +249,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
                 )}
             </FormItem>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
               <FormField
                 control={form.control}
                 name="estado"
@@ -278,15 +277,30 @@ export function ProjectForm({ project }: ProjectFormProps) {
                 )}
               />
 
+              {isEditing && (
+                <FormItem>
+                  <FormLabel>Puntaje IA Actual</FormLabel>
+                  <FormControl>
+                    <div className="flex items-center h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm">
+                      <Star className="h-4 w-4 mr-2 text-amber-400" />
+                      <span className="font-bold">{project.aiScore ?? '-'} / 100</span>
+                    </div>
+                  </FormControl>
+                  <FormDescription>
+                    Este puntaje se recalculará al guardar.
+                  </FormDescription>
+                </FormItem>
+              )}
+
               <FormField
                 control={form.control}
                 name="isPublic"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 h-full">
                     <div className="space-y-0.5">
                       <FormLabel>Visible Públicamente</FormLabel>
                       <FormDescription>
-                        Permitir que este proyecto sea visible en el portal público.
+                        Permitir que sea visible en el portal público.
                       </FormDescription>
                     </div>
                     <FormControl>
@@ -348,3 +362,5 @@ export function ProjectForm({ project }: ProjectFormProps) {
     </>
   );
 }
+
+    
