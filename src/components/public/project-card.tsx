@@ -1,10 +1,9 @@
-import Link from 'next/link';
-import Image from 'next/image';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import Link from "next/link";
+import Image from "next/image";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import type { Project } from "@/lib/definitions";
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import type { Project } from '@/lib/definitions';
 
 interface ProjectCardProps {
   project: Project;
@@ -15,38 +14,29 @@ export function ProjectCard({ project }: ProjectCardProps) {
     imageUrl: `https://picsum.photos/seed/${project.id}/600/400`,
     imageHint: "science technology",
   };
-
+  
   return (
-    <Card className="flex flex-col h-full overflow-hidden transition-transform transform-gpu hover:shadow-lg hover:-translate-y-1">
-      <Link href={`/project/${project.id}`} className="block">
-        <div className="relative h-48 w-full">
-          <Image
-            src={placeholder.imageUrl}
-            alt={project.titulo}
-            fill
-            className="object-cover"
-            data-ai-hint={placeholder.imageHint}
-          />
-        </div>
-      </Link>
-      <CardHeader>
-        <CardTitle className="font-headline text-xl leading-snug">
-          <Link href={`/project/${project.id}`} className="hover:text-primary transition-colors">
-            {project.titulo}
-          </Link>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex-grow">
-        <p className="text-muted-foreground text-sm line-clamp-3">
-          {project.resumen}
-        </p>
-      </CardContent>
-      <CardFooter className="flex-col items-start gap-4">
-          <Badge variant="secondary">{project.estado.replace("_", " ")}</Badge>
-           <p className="text-xs text-muted-foreground">
-            por {project.entidadProponente}
-          </p>
-      </CardFooter>
-    </Card>
+    <Link href={`/project/${project.id}`} className="group block">
+      <Card className="h-full overflow-hidden transition-all group-hover:shadow-xl group-hover:-translate-y-1">
+        <CardHeader className="p-0">
+          <div className="relative h-48 w-full">
+            <Image
+              src={placeholder.imageUrl}
+              alt={project.titulo}
+              fill
+              className="object-cover"
+              data-ai-hint={placeholder.imageHint}
+            />
+            <div className="absolute top-2 right-2">
+                 <Badge variant="secondary">{project.estado.replace("_", " ")}</Badge>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-4">
+          <h3 className="font-headline font-semibold text-lg mb-2 leading-tight">{project.titulo}</h3>
+          <p className="text-sm text-muted-foreground line-clamp-3">{project.resumen}</p>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
