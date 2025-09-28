@@ -56,8 +56,9 @@ export const mockProjects: Project[] = [
     description: '## Metodología\n\nUtilizaremos un enfoque de química computacional para predecir posibles estructuras cristalinas, seguido de síntesis en estado sólido y caracterización mediante difracción de rayos X y mediciones de resistividad.',
     imageId: 'proj_1',
     aiScore: 95,
-    aiSummary: 'Proyecto altamente innovador con potencial disruptivo.',
-    aiRationale: 'El proyecto aborda un desafío científico fundamental con un enfoque metodológico sólido y un alto potencial de impacto tecnológico.'
+    aiSummary: 'Proyecto altamente innovador con potencial disruptivo en energía y computación. La metodología es sólida y combina simulación con trabajo experimental.',
+    aiRationale: 'El puntaje se debe al alto grado de innovación, el claro potencial de impacto tecnológico y un equipo de investigación con experiencia demostrada. La principal debilidad es el alto riesgo inherente a la investigación fundamental.',
+    aiRecommendations: '1. Detallar un plan de contingencia para la fase de síntesis. 2. Ampliar la colaboración con un centro de supercomputación para acelerar los cálculos. 3. Incluir un análisis de impacto económico preliminar.',
   },
   {
     id: 'proj-2',
@@ -77,8 +78,9 @@ export const mockProjects: Project[] = [
     description: '## Objetivos\n\n1.  Crear una base de datos anonimizada de IRM y datos genómicos.\n2.  Entrenar un modelo de red neuronal convolucional (CNN).\n3.  Validar el modelo con un conjunto de datos independiente.',
     imageId: 'proj_2',
     aiScore: 88,
-    aiSummary: 'Propuesta sólida con un enfoque claro en un problema de salud relevante.',
-    aiRationale: 'La metodología es clara y utiliza tecnología de punta. El impacto potencial en la salud pública es significativo.'
+    aiSummary: 'Propuesta sólida que aplica IA a un problema de salud relevante. El enfoque es claro y los objetivos son medibles.',
+    aiRationale: 'El proyecto está bien estructurado y utiliza tecnología de punta. El puntaje refleja un ligero riesgo en la adquisición de datos y la necesidad de una validación clínica robusta.',
+    aiRecommendations: '1. Fortalecer los convenios para el acceso a datos de pacientes. 2. Detallar el protocolo de validación clínica del modelo de IA. 3. Considerar la inclusión de un experto en ética de datos en el equipo.',
   },
   {
     id: 'proj-3',
@@ -98,8 +100,9 @@ export const mockProjects: Project[] = [
     description: '## Impacto\n\nEl proyecto ha generado más de 50,000 observaciones y ha sido fundamental para la creación de dos nuevas áreas de conservación urbana.',
     imageId: 'proj_3',
     aiScore: 92,
-    aiSummary: 'Excelente iniciativa de ciencia ciudadana con impacto demostrado.',
-    aiRationale: 'El proyecto logró una alta participación y generó datos valiosos con un presupuesto modesto. El impacto social y científico es evidente.'
+    aiSummary: 'Excelente iniciativa de ciencia ciudadana con un impacto social y científico demostrado y medible.',
+    aiRationale: 'El proyecto logró una alta participación y generó datos valiosos con un presupuesto modesto. El impacto social y científico es evidente.',
+    aiRecommendations: 'N/A (Proyecto finalizado). Para futuros proyectos: considerar gamificación para aumentar la retención de usuarios.',
   },
   {
     id: 'proj-4',
@@ -119,8 +122,9 @@ export const mockProjects: Project[] = [
     description: '## Fase Actual\n\nActualmente en la fase de desarrollo del contrato inteligente y la integración con sensores IoT en las fincas piloto.',
     imageId: 'proj_4',
     aiScore: 78,
-    aiSummary: 'Proyecto interesante con aplicación práctica en agrotech.',
-    aiRationale: 'El uso de blockchain es pertinente para el problema, aunque la ejecución presenta desafíos técnicos que deben ser gestionados cuidadosamente.'
+    aiSummary: 'Proyecto con una aplicación práctica interesante en agrotech, usando tecnología blockchain para un caso de uso relevante.',
+    aiRationale: 'El uso de blockchain es pertinente para el problema, pero la ejecución presenta desafíos técnicos que deben ser gestionados cuidadosamente. El presupuesto parece ajustado para la complejidad técnica.',
+    aiRecommendations: '1. Realizar pruebas de carga del sistema blockchain antes del despliegue a gran escala. 2. Simplificar la interfaz de usuario para los productores. 3. Buscar alianzas con empresas de logística para una integración completa.',
   },
 ];
 

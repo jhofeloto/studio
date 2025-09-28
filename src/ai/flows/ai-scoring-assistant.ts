@@ -21,7 +21,8 @@ export type AiScoreProjectProposalInput = z.infer<typeof AiScoreProjectProposalI
 
 const AiScoreProjectProposalOutputSchema = z.object({
   summary: z.string().describe('A concise summary of the project proposal.'),
-  rationale: z.string().describe('The rationale for the scoring, based on budget, description, and innovation.'),
+  scoreRationale: z.string().describe('The rationale for the scoring, based on budget, description, and innovation.'),
+  improvementRecommendations: z.string().describe('Specific, actionable recommendations to improve the proposal and its score.'),
   score: z.number().min(0).max(100).describe('A score from 0 to 100 for the project proposal, based on factors like innovation, feasibility, budget, and potential impact.'),
 });
 export type AiScoreProjectProposalOutput = z.infer<typeof AiScoreProjectProposalOutputSchema>;
@@ -34,14 +35,15 @@ const prompt = ai.definePrompt({
   name: 'aiScoreProjectProposalPrompt',
   input: {schema: AiScoreProjectProposalInputSchema},
   output: {schema: AiScoreProjectProposalOutputSchema},
-  prompt: `You are an AI assistant that helps researchers to score project proposals.
+  prompt: `You are an expert AI assistant that helps researchers evaluate and improve project proposals for a Science, Technology, and Innovation (CTeI) fund.
 
-  You will receive the project title, abstract, budget, and description.
+  You will receive the project title, abstract, budget, and a detailed description.
 
-  Based on this information, you must:
-  1.  Provide a concise summary of the proposal.
-  2.  Provide a rationale for the scoring, considering factors like innovation, feasibility, budget (if provided), and potential impact.
-  3.  Provide a numerical score from 0 to 100 for the project proposal.
+  Based on this information, you must perform the following tasks and provide the output in a structured format:
+  1.  **Summary:** Provide a concise summary of the proposal's main objectives and methodology.
+  2.  **Score:** Assign a numerical score from 0 to 100, based on factors like innovation, clarity, feasibility, budget coherence, and potential impact.
+  3.  **Score Rationale:** Briefly explain the reasoning behind the score you assigned. Mention the strengths and weaknesses that influenced your decision.
+  4.  **Improvement Recommendations:** Provide specific, actionable recommendations on how to improve the proposal. The recommendations should be constructive and aimed at helping the user increase the project's potential and score.
 
   Project Information:
   Title: {{{title}}}

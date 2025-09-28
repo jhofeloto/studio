@@ -81,4 +81,5 @@ export type Project = {
   aiScore?: number;
   aiSummary?: string;
   aiRationale?: string;
+  aiRecommendations?: string;
 };

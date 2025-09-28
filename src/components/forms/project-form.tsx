@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Star, UploadCloud } from "lucide-react";
+import { Eye, Loader2, Star, UploadCloud } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,13 +30,14 @@ import {
 } from "@/components/ui/alert-dialog"
 import type { Project, Attachment } from "@/lib/definitions";
 import { FileItem } from "../file-item";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 
 function SubmitButton({ isEditing }: { isEditing?: boolean }) {
   const { pending } = useActionState(updateProjectAction, { message: "" });
   return (
     <Button type="submit" disabled={pending} className="w-full sm:w-auto">
       {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-      {isEditing ? "Guardar Cambios y Re-evaluar" : "Crear Proyecto y Evaluar con IA"}
+      {isEditing ? "Guardar y Re-evaluar" : "Crear y Evaluar con IA"}
     </Button>
   );
 }
@@ -57,7 +58,7 @@ const attachmentToFile = (att: Attachment): File => {
 
 export function ProjectForm({ project }: ProjectFormProps) {
   const { toast } = useToast();
-  const [showDialog, setShowDialog] = useState(false);
+  const [showResultDialog, setShowResultDialog] = useState(false);
   const [stagedFiles, setStagedFiles] = useState<File[]>([]);
   const [existingAttachments, setExistingAttachments] = useState<Attachment[]>(project?.attachments || []);
   
@@ -106,7 +107,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
   useEffect(() => {
     if (formState.message) {
         if(formState.aiResult) {
-            setShowDialog(true);
+            setShowResultDialog(true);
         } else {
              toast({
                 title: "Error",
@@ -280,14 +281,47 @@ export function ProjectForm({ project }: ProjectFormProps) {
               {isEditing && (
                 <FormItem>
                   <FormLabel>Puntaje IA Actual</FormLabel>
-                  <FormControl>
+                  <div className="flex gap-2 items-center">
                     <div className="flex items-center h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm">
                       <Star className="h-4 w-4 mr-2 text-amber-400" />
                       <span className="font-bold">{project.aiScore ?? '-'} / 100</span>
                     </div>
-                  </FormControl>
-                  <FormDescription>
-                    Este puntaje se recalculará al guardar.
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="icon" aria-label="Ver Evaluación de IA">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl">
+                        <DialogHeader>
+                          <DialogTitle className="font-headline text-2xl text-primary">Última Evaluación de IA</DialogTitle>
+                          <DialogDescription>
+                            Este es el análisis más reciente generado para el proyecto.
+                          </DialogDescription>
+                        </DialogHeader>
+                         <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-4 mt-4">
+                            <div className="space-y-2">
+                                <h3 className="font-semibold font-headline">Puntaje General</h3>
+                                <p className="text-3xl font-bold text-primary">{project.aiScore ?? 'N/A'}/100</p>
+                            </div>
+                            <div className="space-y-2">
+                                <h3 className="font-semibold font-headline">Resumen del Proyecto</h3>
+                                <p className="text-sm text-muted-foreground">{project.aiSummary ?? 'No disponible.'}</p>
+                            </div>
+                            <div className="space-y-2">
+                                <h3 className="font-semibold font-headline">Análisis del Puntaje</h3>
+                                <p className="text-sm text-muted-foreground">{project.aiRationale ?? 'No disponible.'}</p>
+                            </div>
+                             <div className="space-y-2">
+                                <h3 className="font-semibold font-headline">Recomendaciones de Mejora</h3>
+                                <p className="text-sm text-muted-foreground">{project.aiRecommendations ?? 'No disponible.'}</p>
+                            </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                   <FormDescription>
+                    El puntaje se recalculará al guardar.
                   </FormDescription>
                 </FormItem>
               )}
@@ -323,7 +357,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
       </CardContent>
     </Card>
 
-    <AlertDialog open={showDialog} onOpenChange={setShowDialog}>
+    <AlertDialog open={showResultDialog} onOpenChange={setShowResultDialog}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle className="font-headline text-2xl text-primary">Evaluación por IA Completada</AlertDialogTitle>
@@ -333,7 +367,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
         </AlertDialogHeader>
         <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-4">
             <div className="space-y-2">
-                <h3 className="font-semibold font-headline">Puntaje General</h3>
+                <h3 className="font-semibold font-headline">Puntaje Obtenido</h3>
                 <p className="text-3xl font-bold text-primary">{formState.aiResult?.score}/100</p>
             </div>
             <div className="space-y-2">
@@ -341,8 +375,12 @@ export function ProjectForm({ project }: ProjectFormProps) {
                 <p className="text-sm text-muted-foreground">{formState.aiResult?.summary}</p>
             </div>
             <div className="space-y-2">
-                <h3 className="font-semibold font-headline">Análisis y Racional del Puntaje</h3>
-                <p className="text-sm text-muted-foreground">{formState.aiResult?.rationale}</p>
+                <h3 className="font-semibold font-headline">Análisis del Puntaje</h3>
+                <p className="text-sm text-muted-foreground">{formState.aiResult?.scoreRationale}</p>
+            </div>
+            <div className="space-y-2">
+                <h3 className="font-semibold font-headline">Recomendaciones de Mejora</h3>
+                <p className="text-sm text-muted-foreground">{formState.aiResult?.improvementRecommendations}</p>
             </div>
         </div>
         <AlertDialogFooter>
@@ -352,7 +390,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
                 setStagedFiles([]);
                 setExistingAttachments([]);
               }
-              setShowDialog(false);
+              setShowResultDialog(false);
             }}>
             {isEditing ? "Cerrar" : "Crear Otro Proyecto"}
             </AlertDialogAction>
@@ -362,5 +400,3 @@ export function ProjectForm({ project }: ProjectFormProps) {
     </>
   );
 }
-
-    

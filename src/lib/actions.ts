@@ -53,7 +53,8 @@ async function scoreAndProcessProject(
       ...validatedFields.data,
       aiScore: aiResult.score,
       aiSummary: aiResult.summary,
-      aiRationale: aiResult.rationale,
+      aiRationale: aiResult.scoreRationale,
+      aiRecommendations: aiResult.improvementRecommendations,
     };
     console.log(`Project ${isEditing ? 'updated' : 'created'}:`, projectDataToSave);
     
