@@ -1,10 +1,12 @@
+
 "use client";
 
 import { useFormStatus } from "react-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useEffect, useRef, useState, useActionState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useActionState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 import { createProjectAction, updateProjectAction, type FormState } from "@/lib/actions";
@@ -196,11 +198,14 @@ export function ProjectForm({ project }: ProjectFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Estado</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecciona estado" />
-                        </SelectTrigger>
+                        <>
+                          <input type="hidden" {...field} />
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecciona estado" />
+                          </SelectTrigger>
+                        </>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="PROPUESTO">Propuesto</SelectItem>
