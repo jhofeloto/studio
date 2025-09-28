@@ -8,7 +8,7 @@ export const mockUsers: User[] = [
 ];
 
 const generateProducts = (projectId: string, count: number): Product[] => {
-  const productTypes: ProductType[] = ["ART_OPEN_A1", "SF", "TES_DOC", "GEN_CONT_VIRT"];
+  const productTypes: ProductType[] = ["ART_OPEN_A1", "PI", "TC_A", "PCD_A1"];
   return Array.from({ length: count }, (_, i) => ({
     id: `prod-${projectId}-${i + 1}`,
     projectId,

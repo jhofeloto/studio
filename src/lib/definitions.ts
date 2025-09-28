@@ -14,26 +14,13 @@ export type User = {
 export type ProjectStatus = "PROPUESTO" | "EN_CURSO" | "FINALIZADO" | "CANCELADO";
 
 export type ProductType = 
-  | "ART_OPEN_A1" | "LIB_A1" | "CAP_LIB_A1"
-  | "PA1" | "SF" | "DI" | "EM_A"
-  | "GEN_CONT_IMP" | "GEN_CONT_VIRT"
-  | "TES_DOC" | "TES_MAES" | "PROY_ID_FOR";
-
-export const ProductTypeLabels: Record<ProductType, string> = {
-  ART_OPEN_A1: "Artículo A1",
-  LIB_A1: "Libro A1",
-  CAP_LIB_A1: "Capítulo de Libro A1",
-  PA1: "Patente A1",
-  SF: "Software",
-  DI: "Diseño Industrial",
-  EM_A: "Empresa de Base Tecnológica",
-  GEN_CONT_IMP: "Contenido Impreso",
-  GEN_CONT_VIRT: "Contenido Virtual",
-  TES_DOC: "Tesis Doctoral",
-  TES_MAES: "Tesis de Maestría",
-  PROY_ID_FOR: "Proyecto Formativo",
-}
-
+  | "ART_OPEN_A1" | "ART_A1" | "ART_OPEN_A2" | "ART_A2" | "LIB_A1" | "LIB_A" 
+  | "CAP_LIB_A1" | "CAP_LIB_A" | "PA1" | "PA2" | "MA1" | "MA2" | "VV_A1" | "VV_A2" 
+  | "VA_A" | "AAD_A1" | "AAD_A" | "RNL_A" | "ART_OPEN_B" | "ART_B" | "ART_OPEN_C" 
+  | "ART_C" | "LIB_B" | "CAP_LIB_B" | "PA3" | "PA4" | "MA3" | "MA4" | "VV_A3" | "VV_A4" 
+  | "VA_B" | "AAD_B" | "DI_A" | "ECI" | "PP" | "PI" | "SD" | "SE" | "FIS" | "GPP_A" 
+  | "GPP_B" | "FCP_A" | "FCP_B" | "EC_A" | "EC_B" | "TC_A" | "TC_B" | "TC_C" | "NSG" 
+  | "ERL" | "PCD_A1" | "PCD_A2";
 
 export type EntityType = "PROJECT" | "PRODUCT";
 
@@ -83,3 +70,4 @@ export type Project = {
   aiRationale?: string;
   aiRecommendations?: string;
 };
+
