@@ -21,7 +21,7 @@ export type ProductFormState = {
     message: string;
     success: boolean;
     errors?: {
-        [key: string]: string[] | undefined;
+        [key:string]: string[] | undefined;
     };
 }
 
@@ -144,12 +144,12 @@ export const createProjectAction = scoreAndProcessProject;
 export const updateProjectAction = scoreAndProcessProject;
 
 
-export async function createProductAction(prevState: ProductFormState, formData: FormData): Promise<ProductFormState> {
+export async function createProductAction(formData: FormData): Promise<ProductFormState> {
     const validatedFields = productSchema.safeParse({
         titulo: formData.get("titulo"),
         descripcion: formData.get("descripcion"),
         productType: formData.get("productType"),
-        isPublic: formData.get("isPublic") === "on",
+        isPublic: formData.get("isPublic") === 'true', // formData values are strings
         projectId: formData.get("projectId"),
     });
 
@@ -167,10 +167,7 @@ export async function createProductAction(prevState: ProductFormState, formData:
 
     const project = mockProjects.find(p => p.id === projectId);
     if (!project) {
-        return {
-            message: "Error: Proyecto asociado no encontrado.",
-            success: false,
-        };
+        return { message: "Error: Proyecto asociado no encontrado.", success: false };
     }
 
     if (isEditing) {
@@ -219,3 +216,5 @@ export async function createProductAction(prevState: ProductFormState, formData:
         success: true,
     };
 }
+
+    

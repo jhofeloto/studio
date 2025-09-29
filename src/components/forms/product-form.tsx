@@ -4,7 +4,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useEffect, useState, useActionState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 
@@ -18,23 +18,23 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { UploadCloud } from "lucide-react";
+import { Loader2, UploadCloud } from "lucide-react";
 import type { Product, Attachment } from "@/lib/definitions";
 import { productTypeLabels } from "@/lib/utils";
 import { FileItem } from "../file-item";
 
 
-function SubmitButton({ isEditing }: { isEditing?: boolean }) {
-  // We can't easily get the pending state from useActionState here without more complex setup.
-  // For now, it's a simple button. The redirection will provide user feedback.
+function SubmitButton({ isPending, isEditing }: { isPending: boolean; isEditing?: boolean }) {
   return (
-    <Button type="submit" className="w-full sm:w-auto">
+    <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
+      {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
       {isEditing ? "Guardar Cambios" : "Crear Producto"}
     </Button>
   );
 }
 
 const attachmentToFile = (att: Attachment): File => {
+  // This is a helper to display existing attachments in the FileItem component
   const file = new File([], att.originalName, { type: att.mimeType });
   Object.defineProperties(file, {
     'size': { value: att.size, writable: false },
@@ -50,15 +50,11 @@ type ProductFormProps = {
 export function ProductForm({ product, projectId }: ProductFormProps) {
   const { toast } = useToast();
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const [stagedFiles, setStagedFiles] = useState<File[]>([]);
   const [existingAttachments, setExistingAttachments] = useState<Attachment[]>(product?.attachments || []);
   
   const isEditing = !!product;
-
-  const [formState, formAction] = useActionState<ProductFormState, FormData>(createProductAction, {
-    message: "",
-    success: false,
-  });
   
   const form = useForm<z.infer<typeof productSchema>>({
     resolver: zodResolver(productSchema),
@@ -73,33 +69,54 @@ export function ProductForm({ product, projectId }: ProductFormProps) {
     },
   });
 
-  useEffect(() => {
-    if (formState && formState.success) {
-      toast({
-        title: "Éxito",
-        description: formState.message,
-      });
-      // Redirect back to the project edit page on success.
-      router.push(`/projects/${projectId}/edit`);
-    } else if (formState && formState.message && !formState.success) {
-      toast({
-        title: "Error",
-        description: formState.message,
-        variant: "destructive",
-      });
-      if (formState.errors) {
-        Object.entries(formState.errors).forEach(([name, errors]) => {
-          if (errors) {
-            form.setError(name as keyof z.infer<typeof productSchema>, {
-              type: "manual",
-              message: errors.join(", "),
-            });
-          }
-        });
-      }
-    }
-  }, [formState, form, toast, projectId, router]);
+  const onSubmit = (values: z.infer<typeof productSchema>) => {
+    const formData = new FormData();
 
+    Object.entries(values).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+             formData.append(key, String(value));
+        }
+    });
+
+    if (isEditing) {
+        formData.append('id', product.id);
+    }
+    
+    // Append files and attachments
+    formData.append('existingAttachments', JSON.stringify(existingAttachments));
+    stagedFiles.forEach(file => {
+        formData.append('attachments', file);
+    });
+
+    startTransition(async () => {
+      const result = await createProductAction(formData);
+      
+      if (result.success) {
+        toast({
+          title: "Éxito",
+          description: result.message,
+        });
+        // Redirect back to the project edit page on success.
+        router.push(`/projects/${projectId}/edit`);
+      } else {
+        toast({
+          title: "Error",
+          description: result.message,
+          variant: "destructive",
+        });
+        if (result.errors) {
+          Object.entries(result.errors).forEach(([name, errors]) => {
+            if (errors) {
+              form.setError(name as keyof z.infer<typeof productSchema>, {
+                type: "manual",
+                message: errors.join(", "),
+              });
+            }
+          });
+        }
+      }
+    });
+  };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -124,13 +141,9 @@ export function ProductForm({ product, projectId }: ProductFormProps) {
       <CardContent>
         <Form {...form}>
           <form
-            action={formAction}
+            onSubmit={form.handleSubmit(onSubmit)}
             className="space-y-8"
           >
-            <input type="hidden" name="projectId" value={projectId} />
-            {isEditing && <input type="hidden" name="id" value={product.id} />}
-            <input type="hidden" name="existingAttachments" value={JSON.stringify(existingAttachments)} />
-
             <FormField
               control={form.control}
               name="titulo"
@@ -153,12 +166,9 @@ export function ProductForm({ product, projectId }: ProductFormProps) {
                     <FormLabel>Tipo de Producto</FormLabel>
                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <div>
-                           <input type="hidden" name={field.name} value={field.value} />
                            <SelectTrigger>
                             <SelectValue placeholder="Selecciona un tipo de producto" />
                           </SelectTrigger>
-                        </div>
                       </FormControl>
                       <SelectContent className="max-h-80">
                         {Object.entries(productTypeLabels).map(([key, label]) => (
@@ -195,7 +205,7 @@ export function ProductForm({ product, projectId }: ProductFormProps) {
                         <UploadCloud className="mx-auto h-12 w-12" />
                         <span className="mt-2 block text-sm font-semibold">Haz clic para cargar o arrastra y suelta</span>
                         <span className="mt-1 block text-xs">PDF, DOCX, etc. (max. 10MB c/u)</span>
-                        <Input id="file-upload" name="attachments" type="file" className="sr-only" multiple onChange={handleFileChange} />
+                        <Input id="file-upload" type="file" className="sr-only" multiple onChange={handleFileChange} />
                     </label>
                 </FormControl>
                 {(stagedFiles.length > 0 || existingAttachments.length > 0) && (
@@ -233,7 +243,6 @@ export function ProductForm({ product, projectId }: ProductFormProps) {
                       <Switch
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                        name="isPublic"
                       />
                     </FormControl>
                   </FormItem>
@@ -241,7 +250,7 @@ export function ProductForm({ product, projectId }: ProductFormProps) {
               />
 
             <div className="flex justify-end">
-              <SubmitButton isEditing={isEditing} />
+              <SubmitButton isPending={isPending} isEditing={isEditing} />
             </div>
           </form>
         </Form>
@@ -249,3 +258,5 @@ export function ProductForm({ product, projectId }: ProductFormProps) {
     </Card>
   );
 }
+
+    
