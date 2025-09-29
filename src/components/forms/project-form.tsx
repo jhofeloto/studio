@@ -76,7 +76,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
       ...project,
       titulo: project.titulo,
       resumen: project.resumen,
-      presupuesto: project.presupuesto || undefined,
+      presupuesto: project.presupuesto,
       description: project.description || "",
     } : {
       titulo: "",
@@ -178,7 +178,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
                   <FormItem>
                     <FormLabel>Presupuesto (Opcional)</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="Ej: 500000" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}/>
+                      <Input type="number" placeholder="Ej: 500000" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
