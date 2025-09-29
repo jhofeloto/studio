@@ -122,9 +122,9 @@ async function scoreAndProcessProject(
     }
     
     revalidatePath("/(admin)/projects");
-    revalidatePath("/(admin)/projects/new");
+    revalidatePath("/(admin)/dashboard");
     if(projectId) {
-      revalidatePath(`/project/${projectId}/edit`);
+      revalidatePath(`/projects/${projectId}/edit`);
     }
     revalidatePath("/(public)");
 
