@@ -23,7 +23,7 @@ export default function SearchPage() {
       
       <div className="max-w-xl mx-auto mb-12">
         <SearchInput 
-          placeholder="Buscar proyectos, productos, investigadores..."
+          placeholder="Buscar en todo el portal de CTeI..."
         />
       </div>
       
