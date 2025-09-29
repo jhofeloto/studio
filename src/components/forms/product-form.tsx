@@ -4,8 +4,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useEffect, useState } from "react";
-import { useActionState } from "react";
+import { useEffect, useState, useActionState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 
@@ -26,10 +25,11 @@ import { FileItem } from "../file-item";
 
 
 function SubmitButton({ isEditing }: { isEditing?: boolean }) {
-  const { pending } = useActionState(createProductAction, { message: "", success: false });
+  // Since we are using useActionState, we don't have access to the form's pending state directly here.
+  // We'll rely on the parent component to manage any complex pending UI if needed.
+  // For now, this is a simple submit button.
   return (
-    <Button type="submit" disabled={pending} className="w-full sm:w-auto">
-      {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+    <Button type="submit" className="w-full sm:w-auto">
       {isEditing ? "Guardar Cambios" : "Crear Producto"}
     </Button>
   );

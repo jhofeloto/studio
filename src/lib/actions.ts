@@ -125,6 +125,7 @@ async function scoreAndProcessProject(
     }
     
     revalidatePath("/(admin)/projects");
+    revalidatePath("/(public)");
 
     return {
       message: `¡Propuesta de proyecto ${isEditing ? 'actualizada' : 'creada'} y evaluada con éxito!`,
@@ -160,7 +161,8 @@ export async function createProductAction(prevState: ProductFormState, formData:
     }
 
     const { projectId, ...productData } = validatedFields.data;
-    const isEditing = formData.get("id") !== null;
+    const productId = formData.get("id") as string | null;
+    const isEditing = !!productId;
 
     const project = mockProjects.find(p => p.id === projectId);
     if (!project) {
@@ -170,25 +172,41 @@ export async function createProductAction(prevState: ProductFormState, formData:
         };
     }
 
-    const newProductId = `prod-${Date.now()}`;
-    const newAttachments = handleAttachments(formData, newProductId, 'PRODUCT');
+    if (isEditing) {
+        const productIndex = mockProducts.findIndex(p => p.id === productId);
+        if (productIndex === -1) {
+            return { message: "Error: Producto no encontrado para actualizar.", success: false };
+        }
+        const updatedProduct = { ...mockProducts[productIndex], ...productData };
+        mockProducts[productIndex] = updatedProduct;
 
-    const newProduct: Product = {
-        id: newProductId,
-        ...productData,
-        projectId: projectId,
-        createdAt: new Date(),
-        attachments: newAttachments,
-        imageId: `prod_${(mockProducts.length % 2) + 1}`,
-    };
+        const projectProductIndex = project.products.findIndex(p => p.id === productId);
+        if (projectProductIndex !== -1) {
+            project.products[projectProductIndex] = updatedProduct;
+        }
+        console.log(`Product updated:`, updatedProduct);
+    } else {
+        const newProductId = `prod-${Date.now()}`;
+        const newAttachments = handleAttachments(formData, newProductId, 'PRODUCT');
 
-    mockProducts.unshift(newProduct);
-    project.products.unshift(newProduct);
-    
-    console.log(`Product ${isEditing ? 'updated' : 'created'}:`, newProduct);
+        const newProduct: Product = {
+            id: newProductId,
+            ...productData,
+            projectId: projectId,
+            createdAt: new Date(),
+            attachments: newAttachments,
+            imageId: `prod_${(mockProducts.length % 2) + 1}`,
+        };
+
+        mockProducts.unshift(newProduct);
+        project.products.unshift(newProduct);
+        
+        console.log(`Product created:`, newProduct);
+    }
 
     revalidatePath(`/(admin)/projects/${validatedFields.data.projectId}/edit`);
     revalidatePath("/(admin)/products");
+    revalidatePath("/(public)");
 
     return {
         message: `Producto ${isEditing ? 'actualizado' : 'creado'} con éxito.`,
