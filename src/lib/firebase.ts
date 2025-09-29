@@ -5,13 +5,13 @@ import { getAnalytics, isSupported } from "firebase/analytics";
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY", // <- REEMPLAZA ESTO
-  authDomain: "cteimanager.firebaseapp.com",
-  projectId: "cteimanager",
-  storageBucket: "cteimanager.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // <- REEMPLAZA ESTO
-  appId: "YOUR_APP_ID", // <- REEMPLAZA ESTO
-  measurementId: "YOUR_MEASUREMENT_ID" // <- REEMPLAZA ESTO
+  apiKey: "YOUR_API_KEY_HERE",
+  authDomain: "focal-column-197904.firebaseapp.com",
+  projectId: "focal-column-197904",
+  storageBucket: "focal-column-197904.appspot.com",
+  messagingSenderId: "538445142105",
+  appId: "1:538445142105:web:2c529b53255ca0cf5023d3",
+  measurementId: "G-YV5C0J5ZEX"
 };
 
 // Initialize Firebase
