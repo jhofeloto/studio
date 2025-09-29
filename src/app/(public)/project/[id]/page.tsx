@@ -73,7 +73,7 @@ export default function ProjectDetailsPage({ params }: Props) {
              <Card>
               <CardHeader>
                 <CardTitle className='font-headline'>Descripción Detallada</CardTitle>
-              </Header>
+              </CardHeader>
               <CardContent>
                 <div
                     className="prose prose-stone dark:prose-invert max-w-none"

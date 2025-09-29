@@ -6,12 +6,12 @@ import { getAnalytics, isSupported } from "firebase/analytics";
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY_HERE",
-  authDomain: "focal-column-197904.firebaseapp.com",
-  projectId: "focal-column-197904",
-  storageBucket: "focal-column-197904.appspot.com",
-  messagingSenderId: "538445142105",
-  appId: "1:538445142105:web:2c529b53255ca0cf5023d3",
-  measurementId: "G-YV5C0J5ZEX"
+  authDomain: "upbeat-aura-197903.firebaseapp.com",
+  projectId: "upbeat-aura-197903",
+  storageBucket: "upbeat-aura-197903.appspot.com",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID_HERE",
+  appId: "YOUR_APP_ID_HERE",
+  measurementId: "YOUR_MEASUREMENT_ID_HERE"
 };
 
 // Initialize Firebase
