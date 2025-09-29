@@ -5,7 +5,9 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { aiScoreProjectProposal, type AiScoreProjectProposalOutput } from "@/ai/flows/ai-scoring-assistant";
 import { projectSchema, productSchema } from "./validations";
-import { mockProjects, mockUsers } from "./mock-data";
+import { mockProjects, mockUsers, mockProducts } from "./mock-data";
+import type { Product } from "./definitions";
+
 
 export type FormState = {
   message: string;
@@ -126,11 +128,31 @@ export async function createProductAction(prevState: ProductFormState, formData:
         };
     }
 
+    const { projectId, ...productData } = validatedFields.data;
     const isEditing = formData.get("id") !== null;
 
+    const project = mockProjects.find(p => p.id === projectId);
+    if (!project) {
+        return {
+            message: "Error: Proyecto asociado no encontrado.",
+        };
+    }
+
     // Here you would save the product to the database.
-    // We'll log it to simulate the save.
-    console.log(`Product ${isEditing ? 'updated' : 'created'}:`, validatedFields.data);
+    // We'll add it to our mock data to simulate the save.
+    const newProduct: Product = {
+        id: `prod-${Date.now()}`,
+        ...productData,
+        projectId: projectId,
+        createdAt: new Date(),
+        attachments: [],
+        imageId: `prod_${(mockProducts.length % 2) + 1}`,
+    };
+
+    mockProducts.unshift(newProduct);
+    project.products.unshift(newProduct);
+    
+    console.log(`Product ${isEditing ? 'updated' : 'created'}:`, newProduct);
 
     revalidatePath(`/(admin)/projects/${validatedFields.data.projectId}/edit`);
     revalidatePath("/(admin)/products");
