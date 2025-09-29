@@ -37,9 +37,6 @@ export default function ProductsPage() {
         title="Gestión de Productos"
         description="Visualiza y administra todos los productos derivados de los proyectos."
       >
-        <Button asChild>
-            <Link href="/projects/new">Añadir Producto</Link>
-        </Button>
       </PageHeader>
       <Card>
         <CardHeader>
