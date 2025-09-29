@@ -17,7 +17,7 @@ export default function SearchPage() {
           Portal de CTeI Publicado y Activo
         </h1>
         <p className="text-muted-foreground mt-4 text-lg">
-          Explora proyectos y productos de investigación e innovación que están transformando nuestro futuro.
+          ¡Nuestra última prueba de publicación fue un éxito!
         </p>
       </div>
       
