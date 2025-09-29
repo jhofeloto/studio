@@ -66,19 +66,13 @@ export function ProductForm({ product, projectId }: ProductFormProps) {
   });
 
   useEffect(() => {
-    if (formState.message) {
-      if (formState.success) {
-        toast({
-          title: "Éxito",
-          description: formState.message,
-        });
-        router.push(`/projects/${projectId}/edit`);
-      } else if (formState.errors) {
-        toast({
-          title: "Error",
-          description: formState.message,
-          variant: "destructive",
-        });
+    if (formState.message && !formState.success) {
+      toast({
+        title: "Error",
+        description: formState.message,
+        variant: "destructive",
+      });
+      if (formState.errors) {
         Object.entries(formState.errors).forEach(([name, errors]) => {
           if (errors) {
             form.setError(name as keyof z.infer<typeof productSchema>, {
@@ -87,13 +81,15 @@ export function ProductForm({ product, projectId }: ProductFormProps) {
             });
           }
         });
-      } else {
-         toast({
-          title: "Error",
-          description: formState.message,
-          variant: "destructive",
-        });
       }
+    }
+    
+    if (formState.success) {
+        toast({
+          title: "Éxito",
+          description: formState.message,
+        });
+        router.push(`/projects/${projectId}/edit`);
     }
   }, [formState, form, toast, isEditing, projectId, router]);
 

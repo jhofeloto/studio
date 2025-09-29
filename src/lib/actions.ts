@@ -34,7 +34,7 @@ async function scoreAndProcessProject(
   const validatedFields = projectSchema.safeParse({
     titulo: formData.get("titulo"),
     resumen: formData.get("resumen"),
-    presupuesto: formData.get("presupuesto") ? Number(formData.get("presupuesto")) : undefined,
+    presupuesto: formData.get("presupuesto") ? Number(formData.get("presupuesto")) : 0,
     entidadProponente: formData.get("entidadProponente"),
     isPublic: formData.get("isPublic") === "on",
     estado: formData.get("estado"),
@@ -157,8 +157,6 @@ export async function createProductAction(prevState: ProductFormState, formData:
     revalidatePath(`/(admin)/projects/${validatedFields.data.projectId}/edit`);
     revalidatePath("/(admin)/products");
 
-    // Instead of redirecting from server, we send a success flag to the client
-    // So it can show the toast and then redirect.
     return {
         message: `Producto ${isEditing ? 'actualizado' : 'creado'} con éxito.`,
         success: true,
