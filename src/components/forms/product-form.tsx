@@ -19,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Loader2, UploadCloud } from "lucide-react";
-import type { Product } from "@/lib/definitions";
+import type { Product, Attachment } from "@/lib/definitions";
 import { productTypeLabels } from "@/lib/utils";
 import { FileItem } from "../file-item";
 
@@ -35,6 +35,14 @@ function SubmitButton({ isEditing }: { isEditing?: boolean }) {
   );
 }
 
+const attachmentToFile = (att: Attachment): File => {
+  const file = new File([], att.originalName, { type: att.mimeType });
+  Object.defineProperties(file, {
+    'size': { value: att.size, writable: false },
+  });
+  return file;
+};
+
 type ProductFormProps = {
   product?: Product;
   projectId: string;
@@ -44,6 +52,7 @@ export function ProductForm({ product, projectId }: ProductFormProps) {
   const { toast } = useToast();
   const router = useRouter();
   const [stagedFiles, setStagedFiles] = useState<File[]>([]);
+  const [existingAttachments, setExistingAttachments] = useState<Attachment[]>(product?.attachments || []);
   
   const isEditing = !!product;
 
@@ -104,6 +113,10 @@ export function ProductForm({ product, projectId }: ProductFormProps) {
     setStagedFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
   };
 
+  const removeExistingAttachment = (index: number) => {
+    setExistingAttachments(prevAtts => prevAtts.filter((_, i) => i !== index));
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -118,6 +131,7 @@ export function ProductForm({ product, projectId }: ProductFormProps) {
           >
             <input type="hidden" name="projectId" value={projectId} />
             {isEditing && <input type="hidden" name="id" value={product.id} />}
+            <input type="hidden" name="existingAttachments" value={JSON.stringify(existingAttachments)} />
 
             <FormField
               control={form.control}
@@ -186,16 +200,23 @@ export function ProductForm({ product, projectId }: ProductFormProps) {
                         <Input id="file-upload" name="attachments" type="file" className="sr-only" multiple onChange={handleFileChange} />
                     </label>
                 </FormControl>
-                {stagedFiles.length > 0 && (
-                    <div className="mt-4 space-y-3">
-                        {stagedFiles.map((file, index) => (
-                           <FileItem 
-                            key={`staged-${index}`} 
-                            file={file} 
-                            onRemove={() => removeStagedFile(index)} 
-                          />
-                        ))}
-                    </div>
+                {(stagedFiles.length > 0 || existingAttachments.length > 0) && (
+                  <div className="mt-4 space-y-3">
+                      {existingAttachments.map((att, index) => (
+                        <FileItem 
+                          key={`existing-${att.id}`} 
+                          file={attachmentToFile(att)} 
+                          onRemove={() => removeExistingAttachment(index)} 
+                        />
+                      ))}
+                      {stagedFiles.map((file, index) => (
+                          <FileItem 
+                          key={`staged-${index}`} 
+                          file={file} 
+                          onRemove={() => removeStagedFile(index)} 
+                        />
+                      ))}
+                  </div>
                 )}
             </FormItem>
             

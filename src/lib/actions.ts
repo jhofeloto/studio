@@ -177,7 +177,15 @@ export async function createProductAction(prevState: ProductFormState, formData:
         if (productIndex === -1) {
             return { message: "Error: Producto no encontrado para actualizar.", success: false };
         }
-        const updatedProduct = { ...mockProducts[productIndex], ...productData };
+        
+        const existingAttachments = JSON.parse(formData.get('existingAttachments') as string || '[]') as Attachment[];
+        const newAttachments = handleAttachments(formData, productId, 'PRODUCT');
+        
+        const updatedProduct = { 
+          ...mockProducts[productIndex], 
+          ...productData,
+          attachments: [...existingAttachments, ...newAttachments],
+        };
         mockProducts[productIndex] = updatedProduct;
 
         const projectProductIndex = project.products.findIndex(p => p.id === productId);
