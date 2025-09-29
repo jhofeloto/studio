@@ -1,0 +1,1 @@
+Este es un archivo de prueba para forzar a que la interfaz de Source Control detecte un cambio. Si puedes ver este archivo en la lista de cambios, significa que podemos proceder a añadir todos los demás.
