@@ -2,12 +2,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { aiScoreProjectProposal, type AiScoreProjectProposalOutput } from "@/ai/flows/ai-scoring-assistant";
 import { projectSchema, productSchema } from "./validations";
 import { mockProjects, mockUsers, mockProducts } from "./mock-data";
-import type { Product, Project } from "./definitions";
-import { redirect } from "next/navigation";
+import type { Product, Project, Attachment } from "./definitions";
 
 
 export type FormState = {
@@ -26,7 +26,28 @@ export type ProductFormState = {
     };
 }
 
-// This is a shared function that can be used for both create and update.
+const handleAttachments = (formData: FormData, relatedId: string, relatedType: 'PROJECT' | 'PRODUCT'): Attachment[] => {
+    // This is a simulation. In a real app, you would handle file uploads to a storage service.
+    const files = formData.getAll("attachments");
+    return files.map((file, i) => {
+      if (file instanceof File && file.size > 0) {
+        return {
+          id: `att-${relatedId}-${Date.now()}-${i}`,
+          filename: file.name,
+          originalName: file.name,
+          mimeType: file.type,
+          size: file.size,
+          url: '#', // Placeholder URL
+          relatedId: relatedId,
+          relatedType: relatedType,
+          uploadedAt: new Date(),
+        };
+      }
+      return null;
+    }).filter((att): att is Attachment => att !== null);
+};
+
+
 async function scoreAndProcessProject(
   prevState: FormState,
   formData: FormData
@@ -49,8 +70,7 @@ async function scoreAndProcessProject(
   }
   
   const { titulo, resumen, presupuesto, description } = validatedFields.data;
-  const isEditing = formData.get("id") !== null;
-
+  
   try {
     const aiResult = await aiScoreProjectProposal({
       title: titulo,
@@ -59,41 +79,49 @@ async function scoreAndProcessProject(
       description: description || "",
     });
 
+    const projectId = formData.get("id") as string | null;
+    const isEditing = !!projectId;
+
     if (isEditing) {
-      const projectId = formData.get("id") as string;
       const projectIndex = mockProjects.findIndex(p => p.id === projectId);
       if (projectIndex !== -1) {
+        const existingAttachments = JSON.parse(formData.get('existingAttachments') as string || '[]') as Attachment[];
+        const newAttachments = handleAttachments(formData, projectId, 'PROJECT');
+        
         mockProjects[projectIndex] = {
           ...mockProjects[projectIndex],
           ...validatedFields.data,
+          attachments: [...existingAttachments, ...newAttachments],
           aiScore: aiResult.score,
           aiSummary: aiResult.summary,
           aiRationale: aiResult.scoreRationale,
           aiRecommendations: aiResult.improvementRecommendations,
         };
         console.log(`Project updated:`, mockProjects[projectIndex]);
-        revalidatePath(`/(admin)/projects/${projectId}/edit`);
+        revalidatePath(`/projects/${projectId}/edit`);
       }
     } else {
-      const newProject: Project = {
-        id: `proj-${Date.now()}`,
-        ...validatedFields.data,
-        presupuesto: validatedFields.data.presupuesto,
-        plazo: new Date(),
-        leadInvestigatorId: mockUsers[1].id,
-        leadInvestigator: mockUsers[1],
-        createdAt: new Date(),
-        collaborators: [],
-        products: [],
-        attachments: [],
-        imageId: `proj_${(mockProjects.length % 4) + 1}`,
-        aiScore: aiResult.score,
-        aiSummary: aiResult.summary,
-        aiRationale: aiResult.scoreRationale,
-        aiRecommendations: aiResult.improvementRecommendations,
-      };
-      mockProjects.unshift(newProject);
-      console.log(`Project created:`, newProject);
+        const newProjectId = `proj-${Date.now()}`;
+        const newAttachments = handleAttachments(formData, newProjectId, 'PROJECT');
+        const newProject: Project = {
+            id: newProjectId,
+            ...validatedFields.data,
+            presupuesto: validatedFields.data.presupuesto,
+            plazo: new Date(),
+            leadInvestigatorId: mockUsers[1].id,
+            leadInvestigator: mockUsers[1],
+            createdAt: new Date(),
+            collaborators: [],
+            products: [],
+            attachments: newAttachments,
+            imageId: `proj_${(mockProjects.length % 4) + 1}`,
+            aiScore: aiResult.score,
+            aiSummary: aiResult.summary,
+            aiRationale: aiResult.scoreRationale,
+            aiRecommendations: aiResult.improvementRecommendations,
+        };
+        mockProjects.unshift(newProject);
+        console.log(`Project created:`, newProject);
     }
     
     revalidatePath("/(admin)/projects");
@@ -127,6 +155,7 @@ export async function createProductAction(prevState: ProductFormState, formData:
         return {
             message: "Error: Revisa los campos del formulario.",
             errors: validatedFields.error.flatten().fieldErrors,
+            success: false,
         };
     }
 
@@ -137,15 +166,19 @@ export async function createProductAction(prevState: ProductFormState, formData:
     if (!project) {
         return {
             message: "Error: Proyecto asociado no encontrado.",
+            success: false,
         };
     }
 
+    const newProductId = `prod-${Date.now()}`;
+    const newAttachments = handleAttachments(formData, newProductId, 'PRODUCT');
+
     const newProduct: Product = {
-        id: `prod-${Date.now()}`,
+        id: newProductId,
         ...productData,
         projectId: projectId,
         createdAt: new Date(),
-        attachments: [],
+        attachments: newAttachments,
         imageId: `prod_${(mockProducts.length % 2) + 1}`,
     };
 

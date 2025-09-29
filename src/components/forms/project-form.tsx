@@ -5,8 +5,8 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useEffect, useState } from "react";
-import { useActionState } from "react";
+import { useEffect, useState, useTransition } from "react";
+import { useFormState } from "react-dom";
 import { useToast } from "@/hooks/use-toast";
 
 import { createProjectAction, updateProjectAction, type FormState } from "@/lib/actions";
@@ -33,10 +33,12 @@ import { FileItem } from "../file-item";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 
 function SubmitButton({ isEditing }: { isEditing?: boolean }) {
-  const { pending } = useActionState(updateProjectAction, { message: "" });
+  const [isPending, startTransition] = useTransition();
+  const { pending } = useFormState(isEditing ? updateProjectAction : createProjectAction, { message: "" });
+  
   return (
-    <Button type="submit" disabled={pending} className="w-full sm:w-auto">
-      {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+    <Button type="submit" disabled={pending || isPending} className="w-full sm:w-auto">
+      {(pending || isPending) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
       {isEditing ? "Guardar y Re-evaluar" : "Crear y Evaluar con IA"}
     </Button>
   );
@@ -49,7 +51,6 @@ type ProjectFormProps = {
 // Helper to create a File object from an Attachment, for consistent display
 const attachmentToFile = (att: Attachment): File => {
   const file = new File([], att.originalName, { type: att.mimeType });
-  // We add custom properties to match the structure we need
   Object.defineProperties(file, {
     'size': { value: att.size, writable: false },
   });
@@ -66,7 +67,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
 
   const action = isEditing ? updateProjectAction : createProjectAction;
 
-  const [formState, formAction] = useActionState<FormState, FormData>(action, {
+  const [formState, formAction] = useFormState(action, {
     message: "",
   });
   
@@ -108,7 +109,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
     if (formState.message) {
         if(formState.aiResult) {
             setShowResultDialog(true);
-        } else {
+        } else if (formState.errors) {
              toast({
                 title: "Error",
                 description: formState.message,
@@ -142,6 +143,8 @@ export function ProjectForm({ project }: ProjectFormProps) {
             className="space-y-8"
           >
             {isEditing && <input type="hidden" name="id" value={project.id} />}
+            <input type="hidden" name="existingAttachments" value={JSON.stringify(existingAttachments)} />
+
             <FormField
               control={form.control}
               name="titulo"
@@ -178,7 +181,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
                   <FormItem>
                     <FormLabel>Presupuesto (Opcional)</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="Ej: 500000" {...field} value={field.value ?? ''} />
+                      <Input type="number" placeholder="Ej: 500000" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))} value={field.value ?? ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
