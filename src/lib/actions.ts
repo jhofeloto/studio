@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { aiScoreProjectProposal, type AiScoreProjectProposalOutput } from "@/ai/flows/ai-scoring-assistant";
 import { projectSchema, productSchema } from "./validations";
+import { mockProjects, mockUsers } from "./mock-data";
 
 export type FormState = {
   message: string;
@@ -54,21 +55,44 @@ async function scoreAndProcessProject(
       description: description || "",
     });
 
-    // Here you would typically save the project to the database
-    // We are logging it to simulate the save operation
-    const projectDataToSave = {
-      ...validatedFields.data,
-      aiScore: aiResult.score,
-      aiSummary: aiResult.summary,
-      aiRationale: aiResult.scoreRationale,
-      aiRecommendations: aiResult.improvementRecommendations,
-    };
-    console.log(`Project ${isEditing ? 'updated' : 'created'}:`, projectDataToSave);
+    if (isEditing) {
+      const projectId = formData.get("id") as string;
+      const projectIndex = mockProjects.findIndex(p => p.id === projectId);
+      if (projectIndex !== -1) {
+        mockProjects[projectIndex] = {
+          ...mockProjects[projectIndex],
+          ...validatedFields.data,
+          aiScore: aiResult.score,
+          aiSummary: aiResult.summary,
+          aiRationale: aiResult.scoreRationale,
+          aiRecommendations: aiResult.improvementRecommendations,
+        };
+        console.log(`Project updated:`, mockProjects[projectIndex]);
+        revalidatePath(`/(admin)/projects/${projectId}/edit`);
+      }
+    } else {
+      const newProject = {
+        id: `proj-${Date.now()}`,
+        ...validatedFields.data,
+        presupuesto: validatedFields.data.presupuesto,
+        plazo: new Date(),
+        leadInvestigatorId: mockUsers[1].id,
+        leadInvestigator: mockUsers[1],
+        createdAt: new Date(),
+        collaborators: [],
+        products: [],
+        attachments: [],
+        imageId: `proj_${(mockProjects.length % 4) + 1}`,
+        aiScore: aiResult.score,
+        aiSummary: aiResult.summary,
+        aiRationale: aiResult.scoreRationale,
+        aiRecommendations: aiResult.improvementRecommendations,
+      };
+      mockProjects.unshift(newProject);
+      console.log(`Project created:`, newProject);
+    }
     
     revalidatePath("/(admin)/projects");
-    if (isEditing) {
-        revalidatePath(`/(admin)/projects/${formData.get("id")}/edit`);
-    }
 
     return {
       message: `¡Propuesta de proyecto ${isEditing ? 'actualizada' : 'creada'} y evaluada con éxito!`,
