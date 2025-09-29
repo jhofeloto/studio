@@ -18,16 +18,15 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, UploadCloud } from "lucide-react";
+import { UploadCloud } from "lucide-react";
 import type { Product, Attachment } from "@/lib/definitions";
 import { productTypeLabels } from "@/lib/utils";
 import { FileItem } from "../file-item";
 
 
 function SubmitButton({ isEditing }: { isEditing?: boolean }) {
-  // Since we are using useActionState, we don't have access to the form's pending state directly here.
-  // We'll rely on the parent component to manage any complex pending UI if needed.
-  // For now, this is a simple submit button.
+  // We can't easily get the pending state from useActionState here without more complex setup.
+  // For now, it's a simple button. The redirection will provide user feedback.
   return (
     <Button type="submit" className="w-full sm:w-auto">
       {isEditing ? "Guardar Cambios" : "Crear Producto"}
@@ -75,7 +74,16 @@ export function ProductForm({ product, projectId }: ProductFormProps) {
   });
 
   useEffect(() => {
-    if (formState.message && !formState.success) {
+    if (!formState) return;
+
+    if (formState.success) {
+      toast({
+        title: "Éxito",
+        description: formState.message,
+      });
+      // Redirect back to the project edit page on success.
+      router.push(`/projects/${projectId}/edit`);
+    } else if (formState.message && !formState.success) {
       toast({
         title: "Error",
         description: formState.message,
@@ -92,15 +100,7 @@ export function ProductForm({ product, projectId }: ProductFormProps) {
         });
       }
     }
-    
-    if (formState.success) {
-        toast({
-          title: "Éxito",
-          description: formState.message,
-        });
-        router.push(`/projects/${projectId}/edit`);
-    }
-  }, [formState, form, toast, isEditing, projectId, router]);
+  }, [formState, form, toast, projectId, router]);
 
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {

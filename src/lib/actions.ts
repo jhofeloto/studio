@@ -2,7 +2,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 import { aiScoreProjectProposal, type AiScoreProjectProposalOutput } from "@/ai/flows/ai-scoring-assistant";
 import { projectSchema, productSchema } from "./validations";
@@ -20,7 +19,7 @@ export type FormState = {
 
 export type ProductFormState = {
     message: string;
-    success?: boolean;
+    success: boolean;
     errors?: {
         [key: string]: string[] | undefined;
     };
@@ -30,7 +29,7 @@ const handleAttachments = (formData: FormData, relatedId: string, relatedType: '
     // This is a simulation. In a real app, you would handle file uploads to a storage service.
     const files = formData.getAll("attachments");
     return files.map((file, i) => {
-      if (file instanceof File && file.size > 0) {
+      if (file instanceof File && file.name && file.size > 0) {
         return {
           id: `att-${relatedId}-${Date.now()}-${i}`,
           filename: file.name,
@@ -55,7 +54,7 @@ async function scoreAndProcessProject(
   const validatedFields = projectSchema.safeParse({
     titulo: formData.get("titulo"),
     resumen: formData.get("resumen"),
-    presupuesto: formData.get("presupuesto") ? Number(formData.get("presupuesto")) : 0,
+    presupuesto: formData.get("presupuesto"),
     entidadProponente: formData.get("entidadProponente"),
     isPublic: formData.get("isPublic") === "on",
     estado: formData.get("estado"),
@@ -91,14 +90,13 @@ async function scoreAndProcessProject(
         mockProjects[projectIndex] = {
           ...mockProjects[projectIndex],
           ...validatedFields.data,
+          presupuesto: validatedFields.data.presupuesto,
           attachments: [...existingAttachments, ...newAttachments],
           aiScore: aiResult.score,
           aiSummary: aiResult.summary,
           aiRationale: aiResult.scoreRationale,
           aiRecommendations: aiResult.improvementRecommendations,
         };
-        console.log(`Project updated:`, mockProjects[projectIndex]);
-        revalidatePath(`/projects/${projectId}/edit`);
       }
     } else {
         const newProjectId = `proj-${Date.now()}`;
@@ -121,10 +119,11 @@ async function scoreAndProcessProject(
             aiRecommendations: aiResult.improvementRecommendations,
         };
         mockProjects.unshift(newProject);
-        console.log(`Project created:`, newProject);
     }
     
     revalidatePath("/(admin)/projects");
+    revalidatePath("/(admin)/projects/new");
+    revalidatePath(`/project/${projectId}/edit`);
     revalidatePath("/(public)");
 
     return {
@@ -192,7 +191,6 @@ export async function createProductAction(prevState: ProductFormState, formData:
         if (projectProductIndex !== -1) {
             project.products[projectProductIndex] = updatedProduct;
         }
-        console.log(`Product updated:`, updatedProduct);
     } else {
         const newProductId = `prod-${Date.now()}`;
         const newAttachments = handleAttachments(formData, newProductId, 'PRODUCT');
@@ -208,11 +206,9 @@ export async function createProductAction(prevState: ProductFormState, formData:
 
         mockProducts.unshift(newProduct);
         project.products.unshift(newProduct);
-        
-        console.log(`Product created:`, newProduct);
     }
 
-    revalidatePath(`/(admin)/projects/${validatedFields.data.projectId}/edit`);
+    revalidatePath(`/(admin)/projects/${projectId}/edit`);
     revalidatePath("/(admin)/products");
     revalidatePath("/(public)");
 
