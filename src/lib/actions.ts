@@ -4,7 +4,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { aiScoreProjectProposal, type AiScoreProjectProposalOutput } from "@/ai/flows/ai-scoring-assistant";
-import { projectSchema } from "./validations";
+import { projectSchema, productSchema } from "./validations";
 
 export type FormState = {
   message: string;
@@ -14,6 +14,13 @@ export type FormState = {
   };
 };
 
+export type ProductFormState = {
+    message: string;
+    errors?: {
+        [key: string]: string[] | undefined;
+    };
+}
+
 // This is a shared function that can be used for both create and update.
 async function scoreAndProcessProject(
   prevState: FormState,
@@ -22,7 +29,7 @@ async function scoreAndProcessProject(
   const validatedFields = projectSchema.safeParse({
     titulo: formData.get("titulo"),
     resumen: formData.get("resumen"),
-    presupuesto: Number(formData.get("presupuesto")) || undefined,
+    presupuesto: formData.get("presupuesto") ? Number(formData.get("presupuesto")) : undefined,
     entidadProponente: formData.get("entidadProponente"),
     isPublic: formData.get("isPublic") === "on",
     estado: formData.get("estado"),
@@ -77,3 +84,34 @@ async function scoreAndProcessProject(
 
 export const createProjectAction = scoreAndProcessProject;
 export const updateProjectAction = scoreAndProcessProject;
+
+
+export async function createProductAction(prevState: ProductFormState, formData: FormData): Promise<ProductFormState> {
+    const validatedFields = productSchema.safeParse({
+        titulo: formData.get("titulo"),
+        descripcion: formData.get("descripcion"),
+        productType: formData.get("productType"),
+        isPublic: formData.get("isPublic") === "on",
+        projectId: formData.get("projectId"),
+    });
+
+    if (!validatedFields.success) {
+        return {
+            message: "Error: Revisa los campos del formulario.",
+            errors: validatedFields.error.flatten().fieldErrors,
+        };
+    }
+
+    const isEditing = formData.get("id") !== null;
+
+    // Here you would save the product to the database.
+    // We'll log it to simulate the save.
+    console.log(`Product ${isEditing ? 'updated' : 'created'}:`, validatedFields.data);
+
+    revalidatePath(`/(admin)/projects/${validatedFields.data.projectId}/edit`);
+    revalidatePath("/(admin)/products");
+
+    return {
+        message: `Producto ${isEditing ? 'actualizado' : 'creado'} con éxito.`,
+    };
+}

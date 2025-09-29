@@ -178,7 +178,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
                   <FormItem>
                     <FormLabel>Presupuesto (Opcional)</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="Ej: 500000" {...field} value={field.value ?? ''} onChange={e => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}/>
+                      <Input type="number" placeholder="Ej: 500000" {...field} value={field.value ?? ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

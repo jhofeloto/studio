@@ -4,9 +4,12 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useActionState } from "react";
 import { useToast } from "@/hooks/use-toast";
+
+import { createProductAction, type ProductFormState } from "@/lib/actions";
+import { productSchema } from "@/lib/validations";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,29 +19,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Loader2, UploadCloud } from "lucide-react";
-import type { Product, Attachment } from "@/lib/definitions";
+import type { Product } from "@/lib/definitions";
 import { productTypeLabels } from "@/lib/utils";
 import { FileItem } from "../file-item";
 
-// Dummy actions for now
-const dummyAction = async (prevState: any, formData: FormData) => {
-    console.log("Form submitted!");
-    await new Promise(res => setTimeout(res, 1000));
-    // In a real app, you'd redirect or show a success message.
-    // For now, we'll just log it.
-    return { message: "Producto guardado (simulación)." };
-};
-
-const productFormSchema = z.object({
-  titulo: z.string().min(5, { message: "El título debe tener al menos 5 caracteres." }),
-  descripcion: z.string().min(10, { message: "La descripción debe tener al menos 10 caracteres." }),
-  productType: z.string().min(1, { message: "Debes seleccionar un tipo de producto." }),
-  isPublic: z.boolean().default(false),
-});
-
 
 function SubmitButton({ isEditing }: { isEditing?: boolean }) {
-  const { pending } = useActionState(dummyAction, { message: "" });
+  const { pending } = useActionState(createProductAction, { message: "" });
   return (
     <Button type="submit" disabled={pending} className="w-full sm:w-auto">
       {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
@@ -58,12 +45,12 @@ export function ProductForm({ product, projectId }: ProductFormProps) {
   
   const isEditing = !!product;
 
-  const [formState, formAction] = useActionState(dummyAction, {
+  const [formState, formAction] = useActionState<ProductFormState, FormData>(createProductAction, {
     message: "",
   });
   
-  const form = useForm<z.infer<typeof productFormSchema>>({
-    resolver: zodResolver(productFormSchema),
+  const form = useForm<z.infer<typeof productSchema>>({
+    resolver: zodResolver(productSchema),
     defaultValues: product ? {
       ...product,
     } : {
@@ -71,8 +58,39 @@ export function ProductForm({ product, projectId }: ProductFormProps) {
       descripcion: "",
       productType: "",
       isPublic: false,
+      projectId: projectId,
     },
   });
+
+  useEffect(() => {
+    if (formState.message) {
+      if (formState.errors) {
+        toast({
+          title: "Error",
+          description: formState.message,
+          variant: "destructive",
+        });
+        Object.entries(formState.errors).forEach(([name, errors]) => {
+          if (errors) {
+            form.setError(name as keyof z.infer<typeof productSchema>, {
+              type: "manual",
+              message: errors.join(", "),
+            });
+          }
+        });
+      } else {
+        toast({
+          title: "Éxito",
+          description: formState.message,
+        });
+        if (!isEditing) {
+          form.reset();
+          setStagedFiles([]);
+        }
+      }
+    }
+  }, [formState, form, toast, isEditing]);
+
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
