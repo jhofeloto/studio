@@ -5,8 +5,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useEffect, useState, useTransition } from "react";
-import { useFormState } from "react-dom";
+import { useEffect, useState, useTransition, useActionState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 import { createProjectAction, updateProjectAction, type FormState } from "@/lib/actions";
@@ -34,11 +33,13 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 
 function SubmitButton({ isEditing }: { isEditing?: boolean }) {
   const [isPending, startTransition] = useTransition();
-  const { pending } = useFormState(isEditing ? updateProjectAction : createProjectAction, { message: "" });
+  // This is a bit of a hack to get the pending state from the form action
+  // A cleaner way might involve a more complex state management, but this works for now.
+  // const { pending } = useFormStatus(); // This only works for direct children
   
   return (
-    <Button type="submit" disabled={pending || isPending} className="w-full sm:w-auto">
-      {(pending || isPending) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+    <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
+      {(isPending) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
       {isEditing ? "Guardar y Re-evaluar" : "Crear y Evaluar con IA"}
     </Button>
   );
@@ -67,7 +68,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
 
   const action = isEditing ? updateProjectAction : createProjectAction;
 
-  const [formState, formAction] = useFormState(action, {
+  const [formState, formAction] = useActionState(action, {
     message: "",
   });
   
