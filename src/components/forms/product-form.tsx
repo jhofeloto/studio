@@ -1,0 +1,212 @@
+
+"use client";
+
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useState } from "react";
+import { useActionState } from "react";
+import { useToast } from "@/hooks/use-toast";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Loader2, UploadCloud } from "lucide-react";
+import type { Product, Attachment } from "@/lib/definitions";
+import { productTypeLabels } from "@/lib/utils";
+import { FileItem } from "../file-item";
+
+// Dummy actions for now
+const dummyAction = async (prevState: any, formData: FormData) => {
+    console.log("Form submitted!");
+    await new Promise(res => setTimeout(res, 1000));
+    // In a real app, you'd redirect or show a success message.
+    // For now, we'll just log it.
+    return { message: "Producto guardado (simulación)." };
+};
+
+const productFormSchema = z.object({
+  titulo: z.string().min(5, { message: "El título debe tener al menos 5 caracteres." }),
+  descripcion: z.string().min(10, { message: "La descripción debe tener al menos 10 caracteres." }),
+  productType: z.string().min(1, { message: "Debes seleccionar un tipo de producto." }),
+  isPublic: z.boolean().default(false),
+});
+
+
+function SubmitButton({ isEditing }: { isEditing?: boolean }) {
+  const { pending } = useActionState(dummyAction, { message: "" });
+  return (
+    <Button type="submit" disabled={pending} className="w-full sm:w-auto">
+      {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+      {isEditing ? "Guardar Cambios" : "Crear Producto"}
+    </Button>
+  );
+}
+
+type ProductFormProps = {
+  product?: Product;
+  projectId: string;
+}
+
+export function ProductForm({ product, projectId }: ProductFormProps) {
+  const { toast } = useToast();
+  const [stagedFiles, setStagedFiles] = useState<File[]>([]);
+  
+  const isEditing = !!product;
+
+  const [formState, formAction] = useActionState(dummyAction, {
+    message: "",
+  });
+  
+  const form = useForm<z.infer<typeof productFormSchema>>({
+    resolver: zodResolver(productFormSchema),
+    defaultValues: product ? {
+      ...product,
+    } : {
+      titulo: "",
+      descripcion: "",
+      productType: "",
+      isPublic: false,
+    },
+  });
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    setStagedFiles(prevFiles => [...prevFiles, ...files]);
+    event.target.value = "";
+  };
+
+  const removeStagedFile = (index: number) => {
+    setStagedFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="font-headline text-2xl">{isEditing ? "Editar Producto" : "Crear Nuevo Producto"}</CardTitle>
+        <CardDescription>{isEditing ? "Modifica los detalles del producto." : "Rellena los detalles del nuevo producto."}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form
+            action={formAction}
+            className="space-y-8"
+          >
+            <input type="hidden" name="projectId" value={projectId} />
+            {isEditing && <input type="hidden" name="id" value={product.id} />}
+
+            <FormField
+              control={form.control}
+              name="titulo"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Título del Producto</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ingresa el título del producto..." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+             <FormField
+                control={form.control}
+                name="productType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tipo de Producto</FormLabel>
+                     <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <div>
+                           <input type="hidden" name={field.name} value={field.value} />
+                           <SelectTrigger>
+                            <SelectValue placeholder="Selecciona un tipo de producto" />
+                          </SelectTrigger>
+                        </div>
+                      </FormControl>
+                      <SelectContent className="max-h-80">
+                        {Object.entries(productTypeLabels).map(([key, label]) => (
+                            <SelectItem key={key} value={key}>{label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+            <FormField
+              control={form.control}
+              name="descripcion"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Descripción</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Una descripción detallada del producto..." {...field} rows={6} />
+                  </FormControl>
+                   <FormDescription>
+                    Puedes usar Markdown para formatear el texto.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+             <FormItem>
+                <FormLabel>Archivos Adjuntos</FormLabel>
+                <FormControl>
+                    <label htmlFor="file-upload" className="relative cursor-pointer block w-full border-2 border-dashed rounded-lg p-6 text-center text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+                        <UploadCloud className="mx-auto h-12 w-12" />
+                        <span className="mt-2 block text-sm font-semibold">Haz clic para cargar o arrastra y suelta</span>
+                        <span className="mt-1 block text-xs">PDF, DOCX, etc. (max. 10MB c/u)</span>
+                        <Input id="file-upload" name="attachments" type="file" className="sr-only" multiple onChange={handleFileChange} />
+                    </label>
+                </FormControl>
+                {stagedFiles.length > 0 && (
+                    <div className="mt-4 space-y-3">
+                        {stagedFiles.map((file, index) => (
+                           <FileItem 
+                            key={`staged-${index}`} 
+                            file={file} 
+                            onRemove={() => removeStagedFile(index)} 
+                          />
+                        ))}
+                    </div>
+                )}
+            </FormItem>
+            
+              <FormField
+                control={form.control}
+                name="isPublic"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel>Visible Públicamente</FormLabel>
+                      <FormDescription>
+                        Permitir que sea visible en el portal público.
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        name="isPublic"
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+            <div className="flex justify-end">
+              <SubmitButton isEditing={isEditing} />
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
+  );
+}

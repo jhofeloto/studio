@@ -25,7 +25,7 @@ export default function EditProjectPage({ params }: Props) {
       />
       <div className="max-w-4xl mx-auto space-y-8">
         <ProjectForm project={project} />
-        <ProjectProductsList products={projectProducts} />
+        <ProjectProductsList products={projectProducts} projectId={project.id} />
       </div>
     </>
   );

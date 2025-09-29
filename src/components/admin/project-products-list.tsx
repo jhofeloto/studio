@@ -23,15 +23,16 @@ import { productTypeLabels } from "@/lib/utils";
 
 type ProjectProductsListProps = {
   products: Product[];
+  projectId: string;
 };
 
-export function ProjectProductsList({ products }: ProjectProductsListProps) {
+export function ProjectProductsList({ products, projectId }: ProjectProductsListProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Productos Derivados</CardTitle>
         <Button asChild>
-            <Link href="#">Añadir Producto</Link>
+            <Link href={`/projects/${projectId}/products/new`}>Añadir Producto</Link>
         </Button>
       </CardHeader>
       <CardContent>
@@ -63,7 +64,9 @@ export function ProjectProductsList({ products }: ProjectProductsListProps) {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                        <DropdownMenuItem>Editar</DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                            <Link href={`/projects/${projectId}/products/${product.id}/edit`}>Editar</Link>
+                        </DropdownMenuItem>
                         <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10">Eliminar</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -76,7 +79,7 @@ export function ProjectProductsList({ products }: ProjectProductsListProps) {
             <div className="text-center text-muted-foreground py-8">
                 <p>Este proyecto aún no tiene productos derivados.</p>
                 <Button variant="link" asChild className="mt-2">
-                    <Link href="#">Añadir el primer producto</Link>
+                    <Link href={`/projects/${projectId}/products/new`}>Añadir el primer producto</Link>
                 </Button>
             </div>
         )}
