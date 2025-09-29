@@ -7,6 +7,7 @@ import { z } from "zod";
 import { useEffect, useState } from "react";
 import { useActionState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 import { createProductAction, type ProductFormState } from "@/lib/actions";
 import { productSchema } from "@/lib/validations";
@@ -25,7 +26,7 @@ import { FileItem } from "../file-item";
 
 
 function SubmitButton({ isEditing }: { isEditing?: boolean }) {
-  const { pending } = useActionState(createProductAction, { message: "" });
+  const { pending } = useActionState(createProductAction, { message: "", success: false });
   return (
     <Button type="submit" disabled={pending} className="w-full sm:w-auto">
       {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
@@ -41,12 +42,14 @@ type ProductFormProps = {
 
 export function ProductForm({ product, projectId }: ProductFormProps) {
   const { toast } = useToast();
+  const router = useRouter();
   const [stagedFiles, setStagedFiles] = useState<File[]>([]);
   
   const isEditing = !!product;
 
   const [formState, formAction] = useActionState<ProductFormState, FormData>(createProductAction, {
     message: "",
+    success: false,
   });
   
   const form = useForm<z.infer<typeof productSchema>>({
@@ -64,7 +67,13 @@ export function ProductForm({ product, projectId }: ProductFormProps) {
 
   useEffect(() => {
     if (formState.message) {
-      if (formState.errors) {
+      if (formState.success) {
+        toast({
+          title: "Éxito",
+          description: formState.message,
+        });
+        router.push(`/projects/${projectId}/edit`);
+      } else if (formState.errors) {
         toast({
           title: "Error",
           description: formState.message,
@@ -79,17 +88,14 @@ export function ProductForm({ product, projectId }: ProductFormProps) {
           }
         });
       } else {
-        toast({
-          title: "Éxito",
+         toast({
+          title: "Error",
           description: formState.message,
+          variant: "destructive",
         });
-        if (!isEditing) {
-          form.reset();
-          setStagedFiles([]);
-        }
       }
     }
-  }, [formState, form, toast, isEditing]);
+  }, [formState, form, toast, isEditing, projectId, router]);
 
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {

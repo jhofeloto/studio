@@ -6,7 +6,8 @@ import { z } from "zod";
 import { aiScoreProjectProposal, type AiScoreProjectProposalOutput } from "@/ai/flows/ai-scoring-assistant";
 import { projectSchema, productSchema } from "./validations";
 import { mockProjects, mockUsers, mockProducts } from "./mock-data";
-import type { Product } from "./definitions";
+import type { Product, Project } from "./definitions";
+import { redirect } from "next/navigation";
 
 
 export type FormState = {
@@ -19,6 +20,7 @@ export type FormState = {
 
 export type ProductFormState = {
     message: string;
+    success?: boolean;
     errors?: {
         [key: string]: string[] | undefined;
     };
@@ -73,7 +75,7 @@ async function scoreAndProcessProject(
         revalidatePath(`/(admin)/projects/${projectId}/edit`);
       }
     } else {
-      const newProject = {
+      const newProject: Project = {
         id: `proj-${Date.now()}`,
         ...validatedFields.data,
         presupuesto: validatedFields.data.presupuesto,
@@ -138,8 +140,6 @@ export async function createProductAction(prevState: ProductFormState, formData:
         };
     }
 
-    // Here you would save the product to the database.
-    // We'll add it to our mock data to simulate the save.
     const newProduct: Product = {
         id: `prod-${Date.now()}`,
         ...productData,
@@ -157,7 +157,10 @@ export async function createProductAction(prevState: ProductFormState, formData:
     revalidatePath(`/(admin)/projects/${validatedFields.data.projectId}/edit`);
     revalidatePath("/(admin)/products");
 
+    // Instead of redirecting from server, we send a success flag to the client
+    // So it can show the toast and then redirect.
     return {
         message: `Producto ${isEditing ? 'actualizado' : 'creado'} con éxito.`,
+        success: true,
     };
 }
