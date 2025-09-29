@@ -123,7 +123,9 @@ async function scoreAndProcessProject(
     
     revalidatePath("/(admin)/projects");
     revalidatePath("/(admin)/projects/new");
-    revalidatePath(`/project/${projectId}/edit`);
+    if(projectId) {
+      revalidatePath(`/project/${projectId}/edit`);
+    }
     revalidatePath("/(public)");
 
     return {
@@ -180,7 +182,7 @@ export async function createProductAction(prevState: ProductFormState, formData:
         const existingAttachments = JSON.parse(formData.get('existingAttachments') as string || '[]') as Attachment[];
         const newAttachments = handleAttachments(formData, productId, 'PRODUCT');
         
-        const updatedProduct = { 
+        const updatedProduct: Product = { 
           ...mockProducts[productIndex], 
           ...productData,
           attachments: [...existingAttachments, ...newAttachments],

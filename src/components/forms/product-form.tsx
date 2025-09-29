@@ -74,16 +74,14 @@ export function ProductForm({ product, projectId }: ProductFormProps) {
   });
 
   useEffect(() => {
-    if (!formState) return;
-
-    if (formState.success) {
+    if (formState && formState.success) {
       toast({
         title: "Éxito",
         description: formState.message,
       });
       // Redirect back to the project edit page on success.
       router.push(`/projects/${projectId}/edit`);
-    } else if (formState.message && !formState.success) {
+    } else if (formState && formState.message && !formState.success) {
       toast({
         title: "Error",
         description: formState.message,
