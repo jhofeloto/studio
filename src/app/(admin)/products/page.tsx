@@ -1,4 +1,5 @@
 
+import Link from "next/link";
 import { PageHeader } from "@/components/admin/page-header";
 import { Button } from "@/components/ui/button";
 import { mockProducts, mockProjects } from "@/lib/mock-data";
@@ -36,7 +37,9 @@ export default function ProductsPage() {
         title="Gestión de Productos"
         description="Visualiza y administra todos los productos derivados de los proyectos."
       >
-        <Button>Añadir Producto</Button>
+        <Button asChild>
+            <Link href="/projects/new">Añadir Producto</Link>
+        </Button>
       </PageHeader>
       <Card>
         <CardHeader>
