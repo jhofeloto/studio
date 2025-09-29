@@ -1,3 +1,4 @@
+
 import { SearchInput } from "@/components/search-input";
 import { ProjectCard } from "@/components/public/project-card";
 import { ProductCard } from "@/components/public/product-card";
@@ -13,7 +14,7 @@ export default function SearchPage() {
     <div className="container mx-auto py-8 md:py-12">
       <div className="text-center mb-8 max-w-2xl mx-auto">
         <h1 className="text-4xl md:text-5xl font-bold font-headline ctei-gradient bg-clip-text text-transparent">
-          Portal de Consulta CTeI
+          Portal de CTeI Publicado y Activo
         </h1>
         <p className="text-muted-foreground mt-4 text-lg">
           Explora proyectos y productos de investigación e innovación que están transformando nuestro futuro.
