@@ -4,9 +4,11 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useEffect, useState, useActionState } from "react";
+import { useEffect, useState, useTransition, useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
+
 
 import { createProjectAction, updateProjectAction, type FormState } from "@/lib/actions";
 import { projectSchema } from "@/lib/validations";
@@ -57,18 +59,15 @@ const attachmentToFile = (att: Attachment): File => {
 
 export function ProjectForm({ project }: ProjectFormProps) {
   const { toast } = useToast();
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const [showResultDialog, setShowResultDialog] = useState(false);
   const [stagedFiles, setStagedFiles] = useState<File[]>([]);
   const [existingAttachments, setExistingAttachments] = useState<Attachment[]>(project?.attachments || []);
+  const [formState, setFormState] = useState<FormState | null>(null);
   
   const isEditing = !!project;
 
-  const action = isEditing ? updateProjectAction : createProjectAction;
-
-  const [formState, formAction] = useActionState(action, {
-    message: "",
-  });
-  
   const form = useForm<z.infer<typeof projectSchema>>({
     resolver: zodResolver(projectSchema),
     defaultValues: project ? {
@@ -77,10 +76,12 @@ export function ProjectForm({ project }: ProjectFormProps) {
       resumen: project.resumen,
       presupuesto: project.presupuesto,
       description: project.description || "",
+      estado: project.estado,
+      isPublic: project.isPublic,
     } : {
       titulo: "",
       resumen: "",
-      presupuesto: undefined,
+      presupuesto: 0,
       estado: "PROPUESTO",
       entidadProponente: "",
       isPublic: false,
@@ -91,8 +92,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     setStagedFiles(prevFiles => [...prevFiles, ...files]);
-    // Clear the input value to allow selecting the same file again
-    event.target.value = "";
+    event.target.value = ""; // Clear the input
   };
 
   const removeStagedFile = (index: number) => {
@@ -103,34 +103,60 @@ export function ProjectForm({ project }: ProjectFormProps) {
     setExistingAttachments(prevAtts => prevAtts.filter((_, i) => i !== index));
   }
 
-  useEffect(() => {
-    if (formState.message) {
-        if (formState.aiResult) {
-            setShowResultDialog(true);
-        } else if (formState.errors) {
-            toast({
-                title: "Error de Validación",
-                description: formState.message,
-                variant: "destructive",
-            });
-        } else {
-           // Catch-all for other messages (e.g., success on edit, general errors)
-            toast({
-                title: isEditing && !formState.errors ? "Proyecto Actualizado" : "Error",
-                description: formState.message,
-                variant: formState.errors ? "destructive" : "default",
-            });
-        }
-    }
+  async function onSubmit(values: z.infer<typeof projectSchema>) {
+    startTransition(async () => {
+      const formData = new FormData();
 
-    if (formState.errors) {
-        Object.entries(formState.errors).forEach(([key, value]) => {
-            if (value) {
-                form.setError(key as keyof z.infer<typeof projectSchema>, { message: value.join(', ') });
-            }
+      // Append all validated form fields
+      for (const key in values) {
+        const value = values[key as keyof typeof values];
+        // Ensure value is not null/undefined before appending
+        if (value !== undefined && value !== null) {
+          formData.append(key, String(value));
+        }
+      }
+
+      // Append files
+      stagedFiles.forEach(file => formData.append('attachments', file));
+      
+      // Keep track of existing attachments that weren't removed
+      formData.append('existingAttachments', JSON.stringify(existingAttachments));
+      
+      // Add project ID for updates
+      if (isEditing && project) {
+          formData.append('id', project.id);
+      }
+
+      const action = isEditing ? updateProjectAction : createProjectAction;
+      const result = await action(formData);
+      
+      setFormState(result);
+
+      if (result.errors) {
+        toast({
+          title: "Error de Validación",
+          description: result.message,
+          variant: "destructive",
         });
-    }
-}, [formState, form, toast, isEditing]);
+        Object.entries(result.errors).forEach(([key, value]) => {
+          if (value) {
+            form.setError(key as keyof z.infer<typeof projectSchema>, { message: value.join(', ') });
+          }
+        });
+      } else if (result.aiResult) {
+        setShowResultDialog(true);
+      } else {
+        toast({
+          title: "Proyecto Actualizado",
+          description: result.message,
+        });
+        // On successful edit, redirect to the dashboard
+        if (isEditing) {
+          router.push('/dashboard');
+        }
+      }
+    });
+  }
 
   return (
     <>
@@ -141,27 +167,14 @@ export function ProjectForm({ project }: ProjectFormProps) {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          {/* The form now submits via the formAction, handled by useActionState */}
-          <form
-            action={(formData) => {
-              // Manually append files to formData before submitting
-              stagedFiles.forEach(file => formData.append('attachments', file));
-              formAction(formData);
-            }}
-            className="space-y-8"
-          >
-            {isEditing && <input type="hidden" name="id" value={project.id} />}
-            <input type="hidden" name="existingAttachments" value={JSON.stringify(existingAttachments)} />
-
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <FormField
               control={form.control}
               name="titulo"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Título del Proyecto</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ingresa el título..." {...field} />
-                  </FormControl>
+                  <FormControl><Input placeholder="Ingresa el título..." {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -173,9 +186,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Resumen (Abstract)</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Un breve resumen del proyecto..." {...field} rows={4} />
-                  </FormControl>
+                  <FormControl><Textarea placeholder="Un breve resumen del proyecto..." {...field} rows={4} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -202,9 +213,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Entidad Proponente</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ej: Universidad de la Innovación" {...field} />
-                    </FormControl>
+                    <FormControl><Input placeholder="Ej: Universidad de la Innovación" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -217,12 +226,8 @@ export function ProjectForm({ project }: ProjectFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Descripción Detallada</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Describe en detalle el proyecto, metodología, objetivos, etc." {...field} rows={8} />
-                  </FormControl>
-                   <FormDescription>
-                    Puedes usar Markdown para formatear el texto.
-                  </FormDescription>
+                  <FormControl><Textarea placeholder="Describe en detalle el proyecto, metodología, objetivos, etc." {...field} rows={8} /></FormControl>
+                   <FormDescription>Puedes usar Markdown para formatear el texto.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -246,18 +251,10 @@ export function ProjectForm({ project }: ProjectFormProps) {
                  {(stagedFiles.length > 0 || existingAttachments.length > 0) && (
                     <div className="mt-4 space-y-3">
                          {existingAttachments.map((att, index) => (
-                          <FileItem 
-                            key={`existing-${att.id}`} 
-                            file={attachmentToFile(att)} 
-                            onRemove={() => removeExistingAttachment(index)} 
-                          />
+                          <FileItem key={`existing-${att.id}`} file={attachmentToFile(att)} onRemove={() => removeExistingAttachment(index)} />
                         ))}
                         {stagedFiles.map((file, index) => (
-                           <FileItem 
-                            key={`staged-${index}`} 
-                            file={file} 
-                            onRemove={() => removeStagedFile(index)} 
-                          />
+                           <FileItem key={`staged-${index}`} file={file} onRemove={() => removeStagedFile(index)} />
                         ))}
                     </div>
                 )}
@@ -272,9 +269,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
                     <FormLabel>Estado</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecciona estado" />
-                        </SelectTrigger>
+                        <SelectTrigger><SelectValue placeholder="Selecciona estado" /></SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="PROPUESTO">Propuesto</SelectItem>
@@ -298,16 +293,12 @@ export function ProjectForm({ project }: ProjectFormProps) {
                     </div>
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button variant="outline" size="icon" aria-label="Ver Evaluación de IA">
-                          <Eye className="h-4 w-4" />
-                        </Button>
+                        <Button variant="outline" size="icon" aria-label="Ver Evaluación de IA"><Eye className="h-4 w-4" /></Button>
                       </DialogTrigger>
                       <DialogContent className="max-w-2xl">
                         <DialogHeader>
                           <DialogTitle className="font-headline text-2xl text-primary">Última Evaluación de IA</DialogTitle>
-                          <DialogDescription>
-                            Este es el análisis más reciente generado para el proyecto.
-                          </DialogDescription>
+                          <DialogDescription>Este es el análisis más reciente generado para el proyecto.</DialogDescription>
                         </DialogHeader>
                          <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-4 mt-4">
                             <div className="space-y-2">
@@ -330,9 +321,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
                       </DialogContent>
                     </Dialog>
                   </div>
-                   <FormDescription>
-                    El puntaje se recalculará al guardar.
-                  </FormDescription>
+                   <FormDescription>El puntaje se recalculará al guardar.</FormDescription>
                 </FormItem>
               )}
 
@@ -343,16 +332,10 @@ export function ProjectForm({ project }: ProjectFormProps) {
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 h-full">
                     <div className="space-y-0.5">
                       <FormLabel>Visible Públicamente</FormLabel>
-                      <FormDescription>
-                        Permitir que sea visible en el portal público.
-                      </FormDescription>
+                      <FormDescription>Permitir que sea visible en el portal público.</FormDescription>
                     </div>
                     <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        name="isPublic"
-                      />
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
                     </FormControl>
                   </FormItem>
                 )}
@@ -360,7 +343,10 @@ export function ProjectForm({ project }: ProjectFormProps) {
             </div>
 
             <div className="flex justify-end">
-              <SubmitButton isEditing={isEditing} />
+               <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
+                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isEditing ? "Guardar y Re-evaluar" : "Crear y Evaluar con IA"}
+              </Button>
             </div>
           </form>
         </Form>
@@ -372,25 +358,25 @@ export function ProjectForm({ project }: ProjectFormProps) {
         <AlertDialogHeader>
           <AlertDialogTitle className="font-headline text-2xl text-primary">Evaluación por IA Completada</AlertDialogTitle>
           <AlertDialogDescription>
-           {formState.message}
+           {formState?.message}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-4">
             <div className="space-y-2">
                 <h3 className="font-semibold font-headline">Puntaje Obtenido</h3>
-                <p className="text-3xl font-bold text-primary">{formState.aiResult?.score}/100</p>
+                <p className="text-3xl font-bold text-primary">{formState?.aiResult?.score}/100</p>
             </div>
             <div className="space-y-2">
                 <h3 className="font-semibold font-headline">Resumen del Proyecto</h3>
-                <p className="text-sm text-muted-foreground">{formState.aiResult?.summary}</p>
+                <p className="text-sm text-muted-foreground">{formState?.aiResult?.summary}</p>
             </div>
             <div className="space-y-2">
                 <h3 className="font-semibold font-headline">Análisis del Puntaje</h3>
-                <p className="text-sm text-muted-foreground">{formState.aiResult?.scoreRationale}</p>
+                <p className="text-sm text-muted-foreground">{formState?.aiResult?.scoreRationale}</p>
             </div>
             <div className="space-y-2">
                 <h3 className="font-semibold font-headline">Recomendaciones de Mejora</h3>
-                <p className="text-sm text-muted-foreground">{formState.aiResult?.improvementRecommendations}</p>
+                <p className="text-sm text-muted-foreground">{formState?.aiResult?.improvementRecommendations}</p>
             </div>
         </div>
         <AlertDialogFooter>
@@ -401,8 +387,11 @@ export function ProjectForm({ project }: ProjectFormProps) {
                 setExistingAttachments([]);
               }
               setShowResultDialog(false);
+               if (isEditing) {
+                router.push('/dashboard');
+              }
             }}>
-            {isEditing ? "Cerrar" : "Crear Otro Proyecto"}
+            {isEditing ? "Cerrar y ver Dashboard" : "Crear Otro Proyecto"}
             </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
