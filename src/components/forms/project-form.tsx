@@ -1,11 +1,11 @@
 
-
 "use client";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useEffect, useState, useTransition, useActionState } from "react";
+import { useEffect, useState, useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { useToast } from "@/hooks/use-toast";
 
 import { createProjectAction, updateProjectAction, type FormState } from "@/lib/actions";
@@ -32,14 +32,11 @@ import { FileItem } from "../file-item";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 
 function SubmitButton({ isEditing }: { isEditing?: boolean }) {
-  const [isPending, startTransition] = useTransition();
-  // This is a bit of a hack to get the pending state from the form action
-  // A cleaner way might involve a more complex state management, but this works for now.
-  // const { pending } = useFormStatus(); // This only works for direct children
+  const { pending } = useFormStatus();
   
   return (
-    <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
-      {(isPending) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+    <Button type="submit" disabled={pending} className="w-full sm:w-auto">
+      {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
       {isEditing ? "Guardar y Re-evaluar" : "Crear y Evaluar con IA"}
     </Button>
   );
@@ -108,27 +105,32 @@ export function ProjectForm({ project }: ProjectFormProps) {
 
   useEffect(() => {
     if (formState.message) {
-        if(formState.aiResult) {
+        if (formState.aiResult) {
             setShowResultDialog(true);
         } else if (formState.errors) {
-             toast({
-                title: "Error",
+            toast({
+                title: "Error de Validación",
                 description: formState.message,
                 variant: "destructive",
             });
+        } else {
+           // Catch-all for other messages (e.g., success on edit, general errors)
+            toast({
+                title: isEditing && !formState.errors ? "Proyecto Actualizado" : "Error",
+                description: formState.message,
+                variant: formState.errors ? "destructive" : "default",
+            });
         }
     }
+
     if (formState.errors) {
-      Object.entries(formState.errors).forEach(([name, errors]) => {
-        if (errors) {
-          form.setError(name as keyof z.infer<typeof projectSchema>, {
-            type: "manual",
-            message: errors.join(", "),
-          });
-        }
-      });
+        Object.entries(formState.errors).forEach(([key, value]) => {
+            if (value) {
+                form.setError(key as keyof z.infer<typeof projectSchema>, { message: value.join(', ') });
+            }
+        });
     }
-  }, [formState, form, toast]);
+}, [formState, form, toast, isEditing]);
 
   return (
     <>
@@ -139,8 +141,13 @@ export function ProjectForm({ project }: ProjectFormProps) {
       </CardHeader>
       <CardContent>
         <Form {...form}>
+          {/* The form now submits via the formAction, handled by useActionState */}
           <form
-            action={formAction}
+            action={(formData) => {
+              // Manually append files to formData before submitting
+              stagedFiles.forEach(file => formData.append('attachments', file));
+              formAction(formData);
+            }}
             className="space-y-8"
           >
             {isEditing && <input type="hidden" name="id" value={project.id} />}
@@ -224,12 +231,14 @@ export function ProjectForm({ project }: ProjectFormProps) {
              <FormItem>
                 <FormLabel>Archivos Adjuntos</FormLabel>
                 <FormControl>
+                  <div>
+                    <Input id="file-upload" type="file" className="sr-only" multiple onChange={handleFileChange} />
                     <label htmlFor="file-upload" className="relative cursor-pointer block w-full border-2 border-dashed rounded-lg p-6 text-center text-muted-foreground hover:border-primary hover:text-primary transition-colors">
                         <UploadCloud className="mx-auto h-12 w-12" />
                         <span className="mt-2 block text-sm font-semibold">Haz clic para cargar o arrastra y suelta</span>
                         <span className="mt-1 block text-xs">PDF, DOCX, etc. (max. 10MB c/u)</span>
-                        <Input id="file-upload" name="attachments" type="file" className="sr-only" multiple onChange={handleFileChange} />
                     </label>
+                  </div>
                 </FormControl>
                 <FormDescription>
                     {stagedFiles.length > 0 || existingAttachments.length > 0 ? 'Archivos listos para el proyecto.' : 'Aquí podrás adjuntar documentos relevantes para tu propuesta.'}
@@ -255,20 +264,17 @@ export function ProjectForm({ project }: ProjectFormProps) {
             </FormItem>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-              <FormField
+               <FormField
                 control={form.control}
                 name="estado"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Estado</FormLabel>
-                     <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <div>
-                           <input type="hidden" name={field.name} value={field.value} />
-                           <SelectTrigger>
-                            <SelectValue placeholder="Selecciona estado" />
-                          </SelectTrigger>
-                        </div>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecciona estado" />
+                        </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="PROPUESTO">Propuesto</SelectItem>

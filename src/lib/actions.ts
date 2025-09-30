@@ -121,12 +121,17 @@ async function scoreAndProcessProject(
         mockProjects.unshift(newProject);
     }
     
-    revalidatePath("/(admin)/projects");
-    revalidatePath("/(admin)/dashboard");
-    if(projectId) {
+    // Revalidate all relevant paths
+    revalidatePath("/dashboard");
+    revalidatePath("/projects");
+    revalidatePath("/"); // Public portal
+    revalidatePath("/projects/new");
+
+    if (projectId) {
+      revalidatePath(`/projects/${projectId}`);
       revalidatePath(`/projects/${projectId}/edit`);
     }
-    revalidatePath("/(public)");
+
 
     return {
       message: `¡Propuesta de proyecto ${isEditing ? 'actualizada' : 'creada'} y evaluada con éxito!`,
@@ -207,14 +212,13 @@ export async function createProductAction(formData: FormData): Promise<ProductFo
         project.products.unshift(newProduct);
     }
 
-    revalidatePath(`/(admin)/projects/${projectId}/edit`);
-    revalidatePath("/(admin)/products");
-    revalidatePath("/(public)");
+    // Revalidate paths related to products
+    revalidatePath(`/projects/${projectId}/edit`);
+    revalidatePath(`/products`);
+    revalidatePath("/"); // Public portal might show products
 
     return {
         message: `Producto ${isEditing ? 'actualizado' : 'creado'} con éxito.`,
         success: true,
     };
 }
-
-    
