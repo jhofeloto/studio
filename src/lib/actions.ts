@@ -3,12 +3,23 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { projectSchema } from "./validations";
+import { projectSchema, productSchema } from "./validations";
 import { mockProjects, mockUsers } from "./mock-data";
 import type { AIResult, FormState } from "./definitions";
-import { redirect } from "next/navigation";
 
 const GENERIC_ERROR_MESSAGE = "Ocurrió un error inesperado. Por favor, inténtalo de nuevo.";
+
+// Type definition for the product form state
+export type ProductFormState = {
+  message: string;
+  errors?: {
+    titulo?: string[];
+    tipo?: string[];
+    url?: string[];
+    projectId?: string[];
+  } | null;
+};
+
 
 /**
  * Simulates a call to an AI model to evaluate a project.
@@ -40,7 +51,6 @@ async function getAIAssessment(data: z.infer<typeof projectSchema>): Promise<AIR
  * A shared function to process form data, validate it, get AI assessment, 
  * and return a consistent state object.
  * @param formData The form data from the client.
- * @param isEditing A flag to indicate if we are creating or updating.
  * @returns A promise that resolves to the new form state.
  */
 async function scoreAndProcessProject(
@@ -49,7 +59,6 @@ async function scoreAndProcessProject(
   const validatedFields = projectSchema.safeParse({
     titulo: formData.get("titulo"),
     resumen: formData.get("resumen"),
-    // Convert empty string or null to undefined for optional number
     presupuesto: formData.get("presupuesto") ? Number(formData.get("presupuesto")) : undefined,
     entidadProponente: formData.get("entidadProponente"),
     description: formData.get("description"),
@@ -57,7 +66,6 @@ async function scoreAndProcessProject(
     isPublic: formData.get("isPublic") === "true",
   });
 
-  // If form validation fails, return errors promptly.
   if (!validatedFields.success) {
     console.log("Server-side validation failed:", validatedFields.error.flatten().fieldErrors);
     return {
@@ -68,7 +76,6 @@ async function scoreAndProcessProject(
   }
 
   try {
-    // Simulate AI assessment
     const aiResult = await getAIAssessment(validatedFields.data);
     
     return {
@@ -99,13 +106,13 @@ export async function createProjectAction(formData: FormData): Promise<FormState
       const newProject = {
           ...projectData,
           id: `proj-${Date.now()}`,
-          plazo: new Date(), // Placeholder
+          plazo: new Date(),
           createdAt: new Date(),
-          leadInvestigatorId: 'user-1', // Placeholder for logged-in user
+          leadInvestigatorId: 'user-1',
           leadInvestigator: mockUsers.find(u => u.id === 'user-1')!,
           collaborators: [],
           products: [],
-          attachments: [], // Placeholder for file handling
+          attachments: [],
           imageId: `proj_${Math.floor(Math.random() * 4) + 1}`,
           aiScore: score,
           aiSummary: summary,
@@ -113,11 +120,10 @@ export async function createProjectAction(formData: FormData): Promise<FormState
           aiRecommendations: improvementRecommendations,
       };
 
-      mockProjects.unshift(newProject); // Add to the start of the array
+      mockProjects.unshift(newProject);
       console.log("New project created:", newProject.id);
 
-      // This path is revalidated, but the client-side will handle the redirect.
-      revalidatePath("/dashboard");
+      revalidatePath("/", "layout"); // Revalidate entire site
   }
   
   return result;
@@ -144,9 +150,8 @@ export async function updateProjectAction(formData: FormData): Promise<FormState
           return { message: "Error: Proyecto no encontrado para actualizar.", errors: null, aiResult: null };
       }
 
-      // Update project data
       mockProjects[projectIndex] = {
-          ...mockProjects[projectIndex], // Retain existing fields like collaborators, products etc.
+          ...mockProjects[projectIndex],
           ...projectData,
           aiScore: score,
           aiSummary: summary,
@@ -156,13 +161,51 @@ export async function updateProjectAction(formData: FormData): Promise<FormState
       
       console.log("Project updated:", projectId);
 
-      // Revalidate both the dashboard and the specific project page
-      revalidatePath("/dashboard");
-      revalidatePath(`/projects/${projectId}/edit`);
+      revalidatePath("/", "layout"); // Revalidate entire site
 
-      // Return a simple success message for updates, redirection is handled client-side
       return { message: "¡Proyecto actualizado y re-evaluado con éxito!", errors: null, aiResult: null };
   }
   
   return result;
+}
+
+/**
+ * Server Action to create a new derived product for a project.
+ */
+export async function createProductAction(prevState: ProductFormState, formData: FormData): Promise<ProductFormState> {
+    const validatedFields = productSchema.safeParse({
+        titulo: formData.get('titulo'),
+        tipo: formData.get('tipo'),
+        url: formData.get('url'),
+        projectId: formData.get('projectId'),
+    });
+
+    if (!validatedFields.success) {
+        return {
+            message: 'Error: Revisa los campos del formulario de producto.',
+            errors: validatedFields.error.flatten().fieldErrors,
+        };
+    }
+
+    const { projectId, ...productData } = validatedFields.data;
+
+    const projectIndex = mockProjects.findIndex(p => p.id === projectId);
+
+    if (projectIndex === -1) {
+        return { message: 'Error: El proyecto asociado no fue encontrado.' };
+    }
+
+    const newProduct = {
+        ...productData,
+        id: `prod-${Date.now()}`,
+        status: 'PENDIENTE' as const, // Default status
+    };
+
+    mockProjects[projectIndex].products.push(newProduct);
+
+    console.log(`New product added to project ${projectId}`);
+    
+    revalidatePath("/", "layout"); // Revalidate entire site
+
+    return { message: '¡Producto derivado añadido con éxito!', errors: null };
 }
