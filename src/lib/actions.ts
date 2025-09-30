@@ -1,4 +1,3 @@
-
 "use server";
 
 import { z } from "zod";
@@ -30,21 +29,16 @@ async function getAIAssessment(data: z.infer<typeof projectSchema>): Promise<AIR
   console.log("Simulating AI assessment for:", data.titulo);
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 1500));
-
-  // Simulate AI scoring logic
-  let score = 60;
-  if (data.description.length > 50) score += 10;
-  if (data.resumen.length > 20) score += 5;
-  if (data.presupuesto && data.presupuesto > 10000) score += 8;
-  if (data.entidadProponente.toLowerCase().includes("universidad")) score += 7;
-  score = Math.min(score, 100); // Cap score at 100
-
-  const summary = `El proyecto '${data.titulo}' tiene un enfoque en ${data.entidadProponente}. Con un presupuesto de ${data.presupuesto}, busca resolver un problema relevante.`;
-  const scoreRationale = `El puntaje de ${score} se basa en la claridad del resumen, la longitud de la descripción y el presupuesto asignado. La entidad proponente parece tener experiencia.`;
-  const improvementRecommendations = `Para mejorar: 1. Detallar más el plan de ejecución. 2. Aumentar el presupuesto para mayor impacto. 3. Especificar los KPIs para medir el éxito.`;
-
-  console.log("AI Assessment complete.");
-  return { score, summary, scoreRationale, improvementRecommendations };
+  
+  const summary = `El proyecto '${data.titulo}' parece bien estructurado. La metodología es sólida y el presupuesto de ${data.presupuesto} es adecuado.`;
+  const score = Math.floor(Math.random() * 30) + 70; // Random score between 70-100
+  const improvementRecommendations = [
+      "Considerar la inclusión de un plan de mitigación de riesgos más detallado.",
+      "Explorar la posibilidad de colaborar con instituciones internacionales para ampliar el alcance.",
+      "Añadir un cronograma con hitos intermedios más específicos."
+  ];
+  
+  return { summary, score, improvementRecommendations };
 }
 
 /**
@@ -54,7 +48,7 @@ async function getAIAssessment(data: z.infer<typeof projectSchema>): Promise<AIR
  * @returns A promise that resolves to the new form state.
  */
 async function scoreAndProcessProject(
-  formData: FormData,
+  formData: FormData
 ): Promise<FormState> {
   const validatedFields = projectSchema.safeParse({
     titulo: formData.get("titulo"),
@@ -99,9 +93,9 @@ async function scoreAndProcessProject(
  */
 export async function createProjectAction(formData: FormData): Promise<FormState> {
   const result = await scoreAndProcessProject(formData);
-
+  
   if (result.aiResult) {
-      const { score, summary, scoreRationale, improvementRecommendations, ...projectData } = result.aiResult;
+      const { score, summary, improvementRecommendations, ...projectData } = result.aiResult;
       
       const newProject = {
           ...projectData,
@@ -116,34 +110,29 @@ export async function createProjectAction(formData: FormData): Promise<FormState
           imageId: `proj_${Math.floor(Math.random() * 4) + 1}`,
           aiScore: score,
           aiSummary: summary,
-          aiRationale: scoreRationale,
           aiRecommendations: improvementRecommendations,
       };
 
       mockProjects.unshift(newProject);
       console.log("New project created:", newProject.id);
 
-      revalidatePath("/", "layout"); // Revalidate entire site
+      // Revalidate relevant paths
+      revalidatePath("/dashboard");
+      revalidatePath("/projects");
   }
   
   return result;
 }
 
-
 /**
  * Server Action to update an existing project.
  */
 export async function updateProjectAction(formData: FormData): Promise<FormState> {
-  const projectId = formData.get("id") as string;
-  if (!projectId) {
-    return { message: "Error: ID de proyecto no encontrado.", errors: null, aiResult: null };
-  }
-
   const result = await scoreAndProcessProject(formData);
-
+  
   if (result.aiResult) {
-      const { score, summary, scoreRationale, improvementRecommendations, ...projectData } = result.aiResult;
-      
+      const { score, summary, improvementRecommendations, ...projectData } = result.aiResult;
+      const projectId = formData.get("id") as string;
       const projectIndex = mockProjects.findIndex(p => p.id === projectId);
 
       if (projectIndex === -1) {
@@ -155,13 +144,15 @@ export async function updateProjectAction(formData: FormData): Promise<FormState
           ...projectData,
           aiScore: score,
           aiSummary: summary,
-          aiRationale: scoreRationale,
           aiRecommendations: improvementRecommendations,
       };
       
       console.log("Project updated:", projectId);
 
-      revalidatePath("/", "layout"); // Revalidate entire site
+      // Revalidate relevant paths specifically
+      revalidatePath("/dashboard");
+      revalidatePath("/projects");
+      revalidatePath(`/projects/${projectId}/edit`);
 
       return { message: "¡Proyecto actualizado y re-evaluado con éxito!", errors: null, aiResult: null };
   }
@@ -205,7 +196,8 @@ export async function createProductAction(prevState: ProductFormState, formData:
 
     console.log(`New product added to project ${projectId}`);
     
-    revalidatePath("/", "layout"); // Revalidate entire site
+    // Revalidate the edit page to show the new product
+    revalidatePath(`/projects/${projectId}/edit`);
 
     return { message: '¡Producto derivado añadido con éxito!', errors: null };
 }
