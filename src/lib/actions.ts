@@ -6,7 +6,7 @@ import { z } from "zod";
 import { aiScoreProjectProposal, type AiScoreProjectProposalOutput } from "@/ai/flows/ai-scoring-assistant";
 import { projectSchema, productSchema } from "./validations";
 import { mockProjects, mockUsers, mockProducts } from "./mock-data";
-import type { Product, Project, Attachment } from "./definitions";
+import type { Product, Project, Attachment, EntityType } from "./definitions";
 
 
 export type FormState = {
@@ -25,7 +25,7 @@ export type ProductFormState = {
     };
 }
 
-const handleAttachments = (formData: FormData, relatedId: string, relatedType: 'PROJECT' | 'PRODUCT'): Attachment[] => {
+const handleAttachments = (formData: FormData, relatedId: string, relatedType: EntityType): Attachment[] => {
     // This is a simulation. In a real app, you would handle file uploads to a storage service.
     const files = formData.getAll("attachments");
     return files.map((file, i) => {
@@ -63,7 +63,7 @@ async function scoreAndProcessProject(
 
   if (!validatedFields.success) {
     return {
-      message: "Error: Please check the form fields.",
+      message: "Error: Por favor, revisa los campos del formulario.",
       errors: validatedFields.error.flatten().fieldErrors,
     };
   }
@@ -85,7 +85,7 @@ async function scoreAndProcessProject(
       const projectIndex = mockProjects.findIndex(p => p.id === projectId);
       if (projectIndex !== -1) {
         const existingAttachments = JSON.parse(formData.get('existingAttachments') as string || '[]') as Attachment[];
-        const newAttachments = handleAttachments(formData, projectId, 'PROJECT');
+        const newAttachments = handleAttachments(formData, projectId, 'PROYECTO');
         
         mockProjects[projectIndex] = {
           ...mockProjects[projectIndex],
@@ -100,7 +100,7 @@ async function scoreAndProcessProject(
       }
     } else {
         const newProjectId = `proj-${Date.now()}`;
-        const newAttachments = handleAttachments(formData, newProjectId, 'PROJECT');
+        const newAttachments = handleAttachments(formData, newProjectId, 'PROYECTO');
         const newProject: Project = {
             id: newProjectId,
             ...validatedFields.data,
@@ -135,7 +135,7 @@ async function scoreAndProcessProject(
   } catch (error) {
     console.error("Error scoring project:", error);
     return {
-      message: "An error occurred while scoring the project. Please try again.",
+      message: "Ocurrió un error al evaluar el proyecto. Por favor, inténtalo de nuevo.",
     };
   }
 }
@@ -177,7 +177,7 @@ export async function createProductAction(formData: FormData): Promise<ProductFo
         }
         
         const existingAttachments = JSON.parse(formData.get('existingAttachments') as string || '[]') as Attachment[];
-        const newAttachments = handleAttachments(formData, productId, 'PRODUCT');
+        const newAttachments = handleAttachments(formData, productId, 'PRODUCTO');
         
         const updatedProduct: Product = { 
           ...mockProducts[productIndex], 
@@ -192,7 +192,7 @@ export async function createProductAction(formData: FormData): Promise<ProductFo
         }
     } else {
         const newProductId = `prod-${Date.now()}`;
-        const newAttachments = handleAttachments(formData, newProductId, 'PRODUCT');
+        const newAttachments = handleAttachments(formData, newProductId, 'PRODUCTO');
 
         const newProduct: Product = {
             id: newProductId,

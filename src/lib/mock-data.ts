@@ -1,5 +1,5 @@
 
-import type { User, Project, Product, UserRole, ProjectStatus, ProductType, Attachment } from './definitions';
+import type { User, Project, Product, EntityType, Attachment } from './definitions';
 
 export const mockUsers: User[] = [
   { id: 'user-1', email: 'admin@ctei.com', nombre: 'Admin', apellidos: 'Nexus', role: 'ADMINISTRADOR', isActive: true, organizacion: 'CTeI' },
@@ -7,22 +7,7 @@ export const mockUsers: User[] = [
   { id: 'user-3', email: 'community@ctei.com', nombre: 'Carl', apellidos: 'Sagan', role: 'COMUNIDAD', isActive: true, organizacion: 'Público General' },
 ];
 
-const generateProducts = (projectId: string, count: number): Product[] => {
-  const productTypes: ProductType[] = ["ART_OPEN_A1", "PI", "TC_A", "PCD_A1"];
-  return Array.from({ length: count }, (_, i) => ({
-    id: `prod-${projectId}-${i + 1}`,
-    projectId,
-    titulo: `Producto Derivado ${i + 1}`,
-    descripcion: `Descripción detallada del producto derivado ${i+1} del proyecto.`,
-    productType: productTypes[i % productTypes.length],
-    isPublic: true,
-    createdAt: new Date(),
-    attachments: [],
-    imageId: `prod_${(i % 2) + 1}`,
-  }));
-};
-
-const generateAttachments = (relatedId: string, relatedType: 'PROJECT' | 'PRODUCT', count: number): Attachment[] => {
+const generateAttachments = (relatedId: string, relatedType: EntityType, count: number): Attachment[] => {
   return Array.from({ length: count }, (_, i) => ({
     id: `att-${relatedId}-${i+1}`,
     filename: `documento-anexo-${i+1}.pdf`,
@@ -36,6 +21,23 @@ const generateAttachments = (relatedId: string, relatedType: 'PROJECT' | 'PRODUC
   }));
 }
 
+const generateProducts = (projectId: string, count: number): Product[] => {
+  const productTypes: any[] = ["ART_OPEN_A1", "PI", "TC_A", "PCD_A1"];
+  return Array.from({ length: count }, (_, i) => {
+    const productId = `prod-${projectId}-${i + 1}`;
+    return {
+      id: productId,
+      projectId,
+      titulo: `Producto Derivado ${i + 1}`,
+      descripcion: `Descripción detallada del producto derivado ${i+1} del proyecto.`,
+      productType: productTypes[i % productTypes.length],
+      isPublic: true,
+      createdAt: new Date(),
+      attachments: generateAttachments(productId, 'PRODUCTO', 1),
+      imageId: `prod_${(i % 2) + 1}`,
+    }
+  });
+};
 
 export const mockProjects: Project[] = [
   {
@@ -52,7 +54,7 @@ export const mockProjects: Project[] = [
     leadInvestigator: mockUsers.find(u => u.id === 'user-2')!,
     collaborators: [],
     products: generateProducts('proj-1', 2),
-    attachments: generateAttachments('proj-1', 'PROJECT', 2),
+    attachments: generateAttachments('proj-1', 'PROYECTO', 2),
     description: '## Metodología\n\nUtilizaremos un enfoque de química computacional para predecir posibles estructuras cristalinas, seguido de síntesis en estado sólido y caracterización mediante difracción de rayos X y mediciones de resistividad.',
     imageId: 'proj_1',
     aiScore: 95,
@@ -96,7 +98,7 @@ export const mockProjects: Project[] = [
     leadInvestigator: mockUsers.find(u => u.id === 'user-2')!,
     collaborators: [],
     products: generateProducts('proj-3', 3),
-    attachments: generateAttachments('proj-3', 'PROJECT', 1),
+    attachments: generateAttachments('proj-3', 'PROYECTO', 1),
     description: '## Impacto\n\nEl proyecto ha generado más de 50,000 observaciones y ha sido fundamental para la creación de dos nuevas áreas de conservación urbana.',
     imageId: 'proj_3',
     aiScore: 92,
@@ -112,7 +114,7 @@ export const mockProjects: Project[] = [
     estado: 'EN_CURSO',
     entidadProponente: 'Cooperativa de Caficultores Tech',
     plazo: new Date('2025-08-01'),
-    isPublic: false, // Private project
+    isPublic: false, // Proyecto privado
     leadInvestigatorId: 'user-2',
     createdAt: new Date('2023-05-01'),
     leadInvestigator: mockUsers.find(u => u.id === 'user-2')!,
@@ -126,6 +128,28 @@ export const mockProjects: Project[] = [
     aiRationale: 'El uso de blockchain es pertinente para el problema, pero la ejecución presenta desafíos técnicos que deben ser gestionados cuidadosamente. El presupuesto parece ajustado para la complejidad técnica.',
     aiRecommendations: '1. Realizar pruebas de carga del sistema blockchain antes del despliegue a gran escala. 2. Simplificar la interfaz de usuario para los productores. 3. Buscar alianzas con empresas de logística para una integración completa.',
   },
+  {
+    id: 'proj-5',
+    titulo: 'Nuevo Proyecto de Prueba',
+    resumen: 'Este es un resumen del nuevo proyecto de prueba que se ha añadido para verificar la funcionalidad de la lista.',
+    presupuesto: 50000,
+    estado: 'PROPUESTO',
+    entidadProponente: 'Entidad de Prueba',
+    plazo: new Date('2025-12-31'),
+    isPublic: true,
+    leadInvestigatorId: 'user-3',
+    createdAt: new Date(),
+    leadInvestigator: mockUsers.find(u => u.id === 'user-3')!,
+    collaborators: [],
+    products: [],
+    attachments: [],
+    description: 'Descripción detallada del nuevo proyecto de prueba.',
+    imageId: 'proj_5',
+    aiScore: null,
+    aiSummary: null,
+    aiRationale: null,
+    aiRecommendations: null,
+  }
 ];
 
 export const mockProducts: Product[] = mockProjects.flatMap(p => p.products);

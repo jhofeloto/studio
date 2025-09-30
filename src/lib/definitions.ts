@@ -22,7 +22,7 @@ export type ProductType =
   | "GPP_B" | "FCP_A" | "FCP_B" | "EC_A" | "EC_B" | "TC_A" | "TC_B" | "TC_C" | "NSG" 
   | "ERL" | "PCD_A1" | "PCD_A2";
 
-export type EntityType = "PROJECT" | "PRODUCT";
+export type EntityType = "PROYECTO" | "PRODUCTO";
 
 export type Attachment = {
   id: string;

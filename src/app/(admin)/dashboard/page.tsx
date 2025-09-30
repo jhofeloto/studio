@@ -1,7 +1,7 @@
 import { PageHeader } from "@/components/admin/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Activity, DollarSign, Folder, Users, ArrowUpRight } from "lucide-react";
+import { Activity, DollarSign, Folder, Users, BrainCircuit, AlertTriangle } from "lucide-react"; // Import new icons
 import Link from 'next/link';
 import {
   Table,
@@ -12,21 +12,41 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge";
-import { mockProjects } from "@/lib/mock-data";
 import { ProjectStatusChart } from "@/components/admin/project-status-chart";
 import { ProjectStatus } from "@/lib/definitions";
+import { getProjects } from "@/lib/db"; 
 
-const stats = [
-    { title: "Presupuesto Total", value: "$12,345,678", change: "+12.5%", icon: DollarSign },
-    { title: "Proyectos Activos", value: "42", change: "+2", icon: Folder },
-    { title: "Investigadores", value: "128", change: "+5", icon: Users },
-    { title: "Actividad Reciente", value: "3 Propuestas", change: "Hoy", icon: Activity },
-];
+export default async function DashboardPage() { 
+    const projects = await getProjects(); 
 
-export default function DashboardPage() {
-    const recentProjects = mockProjects.slice(0, 5);
-    const projectStatusCounts = mockProjects.reduce((acc, project) => {
-      acc[project.estado] = (acc[project.estado] || 0) + 1;
+    // --- Existing Calculations ---
+    const totalBudget = projects.reduce((sum, project) => sum + (project.presupuesto || 0), 0);
+    const activeProjectsCount = projects.filter(p => p.estado === 'EN_CURSO').length;
+    const formattedTotalBudget = new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      maximumFractionDigits: 0
+    }).format(totalBudget);
+
+    // --- New AI Score Calculations ---
+    const scoredProjects = projects.filter(p => typeof p.aiScore === 'number');
+    const averageAiScore = scoredProjects.length > 0 
+      ? scoredProjects.reduce((sum, p) => sum + p.aiScore!, 0) / scoredProjects.length
+      : 0;
+    const atRiskProjectsCount = projects.filter(p => typeof p.aiScore === 'number' && p.aiScore < 50).length;
+
+
+    const stats = [
+      { title: "Presupuesto Total", value: formattedTotalBudget, change: "Calculado", icon: DollarSign },
+      { title: "Proyectos Totales", value: projects.length.toString(), change: `${activeProjectsCount} activos`, icon: Folder },
+      { title: "Puntaje IA Promedio", value: `${averageAiScore.toFixed(1)} / 100`, change: `${scoredProjects.length} evaluados`, icon: BrainCircuit },
+      { title: "Proyectos en Riesgo", value: atRiskProjectsCount.toString(), change: "Puntaje IA < 50", icon: AlertTriangle },
+    ];
+
+    const recentProjects = projects.slice(0, 5);
+    const projectStatusCounts = projects.reduce((acc, project) => {
+      const estado = project.estado || 'PROPUESTO';
+      acc[estado] = (acc[estado] || 0) + 1;
       return acc;
     }, {} as Record<ProjectStatus, number>);
 
@@ -36,7 +56,6 @@ export default function DashboardPage() {
       { status: 'Finalizado', count: projectStatusCounts.FINALIZADO || 0 },
       { status: 'Cancelado', count: projectStatusCounts.CANCELADO || 0 },
     ];
-
 
   return (
     <>
@@ -58,7 +77,7 @@ export default function DashboardPage() {
              </CardHeader>
              <CardContent>
                <div className="text-2xl font-bold">{stat.value}</div>
-               <p className="text-xs text-muted-foreground">{stat.change} desde el último mes</p>
+               <p className="text-xs text-muted-foreground">{stat.change}</p>
              </CardContent>
            </Card>
         ))}
@@ -85,7 +104,7 @@ export default function DashboardPage() {
                            <div className="font-medium">{project.titulo}</div>
                            <div className="text-sm text-muted-foreground">{project.entidadProponente}</div>
                          </TableCell>
-                         <TableCell><Badge variant="outline">{project.estado.replace('_', ' ')}</Badge></TableCell>
+                         <TableCell><Badge variant="outline">{project.estado ? project.estado.replace('_', ' ') : 'N/A'}</Badge></TableCell>
                          <TableCell className="text-right">{project.presupuesto ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(project.presupuesto) : '-'}</TableCell>
                        </TableRow>
                     ))}
