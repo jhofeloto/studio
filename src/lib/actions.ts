@@ -176,6 +176,7 @@ export async function createProductAction(prevState: ProductFormState, formData:
 
         const newProduct = {
             ...productData,
+            projectId: projectId, // <-- This is the fix
             id: `prod-${Date.now()}`,
             status: 'PENDIENTE' as const,
         };
@@ -196,8 +197,9 @@ export async function createProductAction(prevState: ProductFormState, formData:
     
     const projectId = rawData.projectId as string;
 
-    // Invalidate the cache for the project edit page.
+    // Invalidate the cache for all relevant pages
     revalidatePath(`/projects/${projectId}/edit`);
+    revalidatePath(`/products`);
 
     // Redirect back to the project edit page.
     redirect(`/projects/${projectId}/edit`);
