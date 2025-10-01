@@ -153,6 +153,27 @@ export async function updateProjectAction(formData: FormData): Promise<FormState
 }
 
 /**
+ * Server Action to delete a project.
+ */
+export async function deleteProjectAction(projectId: string) {
+    const projectIndex = mockProjects.findIndex(p => p.id === projectId);
+
+    if (projectIndex === -1) {
+        // This should ideally return a more structured error, but for now we'll log it
+        console.error("Error: Proyecto no encontrado para eliminar.");
+        return;
+    }
+
+    mockProjects.splice(projectIndex, 1);
+    console.log(`Project deleted: ${projectId}`);
+
+    // Revalidate paths and redirect
+    revalidatePath("/dashboard");
+    revalidatePath("/projects");
+    redirect("/projects");
+}
+
+/**
  * Server Action to create a new derived product for a project.
  */
 export async function createProductAction(prevState: ProductFormState, formData: FormData): Promise<ProductFormState> {
@@ -176,7 +197,7 @@ export async function createProductAction(prevState: ProductFormState, formData:
 
         const newProduct = {
             ...productData,
-            projectId: projectId, // <-- This is the fix
+            projectId: projectId,
             id: `prod-${Date.now()}`,
             status: 'PENDIENTE' as const,
         };
@@ -203,4 +224,91 @@ export async function createProductAction(prevState: ProductFormState, formData:
 
     // Redirect back to the project edit page.
     redirect(`/projects/${projectId}/edit`);
+}
+
+/**
+ * Server Action to update a derived product.
+ */
+export async function updateProductAction(prevState: ProductFormState, formData: FormData): Promise<ProductFormState> {
+    const rawData = {
+        titulo: formData.get('titulo'),
+        descripcion: formData.get('descripcion'),
+        tipo: formData.get('tipo'),
+        url: formData.get('url'),
+        isPublic: formData.get('isPublic') === 'on',
+        projectId: formData.get('projectId'),
+        productId: formData.get('productId'), // Assuming productId is part of the form
+    };
+
+    try {
+        // We need to extend the schema to include productId for validation
+        const productUpdateSchema = productSchema.extend({
+            productId: z.string().min(1, "ID de producto requerido."),
+        });
+        const validatedFields = productUpdateSchema.parse(rawData);
+        const { projectId, productId, ...productData } = validatedFields;
+
+        const projectIndex = mockProjects.findIndex(p => p.id === projectId);
+        if (projectIndex === -1) {
+            return { message: 'Error: El proyecto asociado no fue encontrado.' };
+        }
+
+        const productIndex = mockProjects[projectIndex].products.findIndex(p => p.id === productId);
+        if (productIndex === -1) {
+            return { message: 'Error: El producto a actualizar no fue encontrado.' };
+        }
+
+        // Update the product data
+        mockProjects[projectIndex].products[productIndex] = {
+            ...mockProjects[projectIndex].products[productIndex],
+            ...productData,
+        };
+        console.log(`Product ${productId} updated in project ${projectId}`);
+
+    } catch (error) {
+        if (error instanceof z.ZodError) {
+            return {
+                message: 'Error: Revisa los campos del formulario de producto.',
+                errors: error.flatten().fieldErrors,
+                fields: rawData,
+            };
+        }
+        return { message: GENERIC_ERROR_MESSAGE };
+    }
+
+    const projectId = rawData.projectId as string;
+
+    // Invalidate cache and redirect
+    revalidatePath(`/projects/${projectId}/edit`);
+    revalidatePath(`/products`);
+    redirect(`/projects/${projectId}/edit`);
+}
+
+/**
+ * Server Action to delete a derived product.
+ */
+export async function deleteProductAction(productId: string, projectId: string) {
+    if (!projectId || !productId) {
+        console.error("Error: Se requiere ID de proyecto y producto.");
+        return;
+    }
+    
+    const projectIndex = mockProjects.findIndex(p => p.id === projectId);
+    if (projectIndex === -1) {
+        console.error("Error: Proyecto no encontrado.");
+        return;
+    }
+
+    const productIndex = mockProjects[projectIndex].products.findIndex(p => p.id === productId);
+    if (productIndex === -1) {
+        console.error("Error: Producto no encontrado para eliminar.");
+        return;
+    }
+
+    mockProjects[projectIndex].products.splice(productIndex, 1);
+    console.log(`Product deleted: ${productId} from project ${projectId}`);
+
+    // Revalidate paths to reflect the change
+    revalidatePath(`/products`);
+    revalidatePath(`/projects/${projectId}/edit`);
 }
