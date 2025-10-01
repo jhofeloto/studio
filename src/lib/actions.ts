@@ -2,22 +2,12 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { projectSchema, productSchema } from "./validations";
+import { productSchema } from "./validations";
 import { mockProjects, mockUsers } from "./mock-data";
-import type { AIResult, FormState } from "./definitions";
+import type { AIResult, FormState, ProductFormState } from "./definitions";
+
 
 const GENERIC_ERROR_MESSAGE = "Ocurrió un error inesperado. Por favor, inténtalo de nuevo.";
-
-// Type definition for the product form state
-export type ProductFormState = {
-  message: string;
-  errors?: {
-    titulo?: string[];
-    tipo?: string[];
-    url?: string[];
-    projectId?: string[];
-  } | null;
-};
 
 
 /**
@@ -25,12 +15,12 @@ export type ProductFormState = {
  * @param data The project data.
  * @returns A promise that resolves with the AI evaluation result.
  */
-async function getAIAssessment(data: z.infer<typeof projectSchema>): Promise<AIResult> {
+async function getAIAssessment(data: z.infer<typeof productSchema>): Promise<AIResult> {
   console.log("Simulating AI assessment for:", data.titulo);
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 1500));
   
-  const summary = `El proyecto '${data.titulo}' parece bien estructurado. La metodología es sólida y el presupuesto de ${data.presupuesto} es adecuado.`;
+  const summary = `El proyecto '${data.titulo}' parece bien estructurado. La metodología es sólida y el presupuesto es adecuado.`;
   const score = Math.floor(Math.random() * 30) + 70; // Random score between 70-100
   const improvementRecommendations = [
       "Considerar la inclusión de un plan de mitigación de riesgos más detallado.",
@@ -50,7 +40,7 @@ async function getAIAssessment(data: z.infer<typeof projectSchema>): Promise<AIR
 async function scoreAndProcessProject(
   formData: FormData
 ): Promise<FormState> {
-  const validatedFields = projectSchema.safeParse({
+  const validatedFields = productSchema.safeParse({
     titulo: formData.get("titulo"),
     resumen: formData.get("resumen"),
     presupuesto: formData.get("presupuesto") ? Number(formData.get("presupuesto")) : undefined,
@@ -164,17 +154,21 @@ export async function updateProjectAction(formData: FormData): Promise<FormState
  * Server Action to create a new derived product for a project.
  */
 export async function createProductAction(prevState: ProductFormState, formData: FormData): Promise<ProductFormState> {
-    const validatedFields = productSchema.safeParse({
+    const rawData = {
         titulo: formData.get('titulo'),
         tipo: formData.get('tipo'),
         url: formData.get('url'),
         projectId: formData.get('projectId'),
-    });
+        descripcion: formData.get('descripcion')
+    };
+
+    const validatedFields = productSchema.safeParse(rawData);
 
     if (!validatedFields.success) {
         return {
             message: 'Error: Revisa los campos del formulario de producto.',
             errors: validatedFields.error.flatten().fieldErrors,
+            fields: rawData, // Return the raw data to repopulate the form
         };
     }
 
@@ -199,5 +193,5 @@ export async function createProductAction(prevState: ProductFormState, formData:
     // Revalidate the edit page to show the new product
     revalidatePath(`/projects/${projectId}/edit`);
 
-    return { message: '¡Producto derivado añadido con éxito!', errors: null };
+    return { message: '¡Producto derivado añadido con éxito!', errors: null, fields: null };
 }
