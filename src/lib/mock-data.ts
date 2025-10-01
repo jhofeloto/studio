@@ -30,16 +30,14 @@ const generateProducts = (projectId: string, count: number): Product[] => {
       projectId,
       titulo: `Producto Derivado ${i + 1}`,
       descripcion: `Descripción detallada del producto derivado ${i+1} del proyecto.`,
-      productType: productTypes[i % productTypes.length],
+      tipo: productTypes[i % productTypes.length],
       isPublic: true,
-      createdAt: new Date(),
-      attachments: generateAttachments(productId, 'PRODUCTO', 1),
-      imageId: `prod_${(i % 2) + 1}`,
+      status: 'PENDIENTE',
     }
   });
 };
 
-export const mockProjects: Project[] = [
+const initialMockProjects: Project[] = [
   {
     id: 'proj-1',
     titulo: 'Desarrollo de un Nuevo Material Superconductor a Temperatura Ambiente',
@@ -84,72 +82,26 @@ export const mockProjects: Project[] = [
     aiRationale: 'El proyecto está bien estructurado y utiliza tecnología de punta. El puntaje refleja un ligero riesgo en la adquisición de datos y la necesidad de una validación clínica robusta.',
     aiRecommendations: '1. Fortalecer los convenios para el acceso a datos de pacientes. 2. Detallar el protocolo de validación clínica del modelo de IA. 3. Considerar la inclusión de un experto en ética de datos en el equipo.',
   },
-  {
-    id: 'proj-3',
-    titulo: 'Plataforma de Ciencia Ciudadana para el Monitoreo de la Biodiversidad Urbana',
-    resumen: 'Desarrollo de una aplicación móvil y web que permite a los ciudadanos registrar observaciones de flora y fauna en entornos urbanos, contribuyendo a una base de datos abierta para la investigación ecológica.',
-    presupuesto: 300000,
-    estado: 'FINALIZADO',
-    entidadProponente: 'Fundación ConCiencia',
-    plazo: new Date('2022-12-31'),
-    isPublic: true,
-    leadInvestigatorId: 'user-2',
-    createdAt: new Date('2021-01-20'),
-    leadInvestigator: mockUsers.find(u => u.id === 'user-2')!,
-    collaborators: [],
-    products: generateProducts('proj-3', 3),
-    attachments: generateAttachments('proj-3', 'PROYECTO', 1),
-    description: '## Impacto\n\nEl proyecto ha generado más de 50,000 observaciones y ha sido fundamental para la creación de dos nuevas áreas de conservación urbana.',
-    imageId: 'proj_3',
-    aiScore: 92,
-    aiSummary: 'Excelente iniciativa de ciencia ciudadana con un impacto social y científico demostrado y medible.',
-    aiRationale: 'El proyecto logró una alta participación y generó datos valiosos con un presupuesto modesto. El impacto social y científico es evidente.',
-    aiRecommendations: 'N/A (Proyecto finalizado). Para futuros proyectos: considerar gamificación para aumentar la retención de usuarios.',
-  },
-  {
-    id: 'proj-4',
-    titulo: 'Tecnología Blockchain para la Trazabilidad de la Cadena de Suministro de Café',
-    resumen: 'Implementación de un sistema basado en blockchain para garantizar la transparencia y trazabilidad del café de especialidad desde el productor hasta el consumidor final.',
-    presupuesto: 900000,
-    estado: 'EN_CURSO',
-    entidadProponente: 'Cooperativa de Caficultores Tech',
-    plazo: new Date('2025-08-01'),
-    isPublic: false, // Proyecto privado
-    leadInvestigatorId: 'user-2',
-    createdAt: new Date('2023-05-01'),
-    leadInvestigator: mockUsers.find(u => u.id === 'user-2')!,
-    collaborators: [],
-    products: generateProducts('proj-4', 1),
-    attachments: [],
-    description: '## Fase Actual\n\nActualmente en la fase de desarrollo del contrato inteligente y la integración con sensores IoT en las fincas piloto.',
-    imageId: 'proj_4',
-    aiScore: 78,
-    aiSummary: 'Proyecto con una aplicación práctica interesante en agrotech, usando tecnología blockchain para un caso de uso relevante.',
-    aiRationale: 'El uso de blockchain es pertinente para el problema, pero la ejecución presenta desafíos técnicos que deben ser gestionados cuidadosamente. El presupuesto parece ajustado para la complejidad técnica.',
-    aiRecommendations: '1. Realizar pruebas de carga del sistema blockchain antes del despliegue a gran escala. 2. Simplificar la interfaz de usuario para los productores. 3. Buscar alianzas con empresas de logística para una integración completa.',
-  },
-  {
-    id: 'proj-5',
-    titulo: 'Nuevo Proyecto de Prueba',
-    resumen: 'Este es un resumen del nuevo proyecto de prueba que se ha añadido para verificar la funcionalidad de la lista.',
-    presupuesto: 50000,
-    estado: 'PROPUESTO',
-    entidadProponente: 'Entidad de Prueba',
-    plazo: new Date('2025-12-31'),
-    isPublic: true,
-    leadInvestigatorId: 'user-3',
-    createdAt: new Date(),
-    leadInvestigator: mockUsers.find(u => u.id === 'user-3')!,
-    collaborators: [],
-    products: [],
-    attachments: [],
-    description: 'Descripción detallada del nuevo proyecto de prueba.',
-    imageId: 'proj_5',
-    aiScore: null,
-    aiSummary: null,
-    aiRationale: null,
-    aiRecommendations: null,
-  }
 ];
+
+
+// This is a workaround to persist the mock data in development across hot reloads.
+// In a real application, this would be a database.
+declare global {
+    // eslint-disable-next-line no-var
+    var __mockProjects__: Project[];
+}
+
+if (process.env.NODE_ENV !== 'production') {
+    if (!global.__mockProjects__) {
+        console.log("Initializing mock projects data for development...");
+        global.__mockProjects__ = initialMockProjects;
+    }
+}
+
+export const mockProjects: Project[] = process.env.NODE_ENV === 'production' 
+    ? initialMockProjects 
+    : global.__mockProjects__;
+
 
 export const mockProducts: Product[] = mockProjects.flatMap(p => p.products);

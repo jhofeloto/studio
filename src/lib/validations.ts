@@ -17,7 +17,8 @@ export const projectSchema = z.object({
 export const productSchema = z.object({
     titulo: z.string().min(5, { message: "El título debe tener al menos 5 caracteres." }),
     descripcion: z.string().min(10, { message: "La descripción debe tener al menos 10 caracteres." }),
-    productType: z.string().min(1, { message: "Debes seleccionar un tipo de producto." }),
+    tipo: z.string().min(1, { message: "Debes seleccionar un tipo de producto." }),
+    url: z.string().url({ message: "Por favor, introduce una URL válida." }).or(z.literal('')).optional(),
     isPublic: z.boolean().default(false),
     projectId: z.string(),
 });

@@ -2,6 +2,8 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { redirect } from 'next/navigation';
+
 import { productSchema } from "./validations";
 import { mockProjects, mockUsers } from "./mock-data";
 import type { AIResult, FormState, ProductFormState } from "./definitions";
@@ -40,7 +42,7 @@ async function getAIAssessment(data: z.infer<typeof productSchema>): Promise<AIR
 async function scoreAndProcessProject(
   formData: FormData
 ): Promise<FormState> {
-  const validatedFields = productSchema.safeParse({
+  const validatedFields = projectSchema.safeParse({
     titulo: formData.get("titulo"),
     resumen: formData.get("resumen"),
     presupuesto: formData.get("presupuesto") ? Number(formData.get("presupuesto")) : undefined,
@@ -156,42 +158,43 @@ export async function updateProjectAction(formData: FormData): Promise<FormState
 export async function createProductAction(prevState: ProductFormState, formData: FormData): Promise<ProductFormState> {
     const rawData = {
         titulo: formData.get('titulo'),
+        descripcion: formData.get('descripcion'),
         tipo: formData.get('tipo'),
         url: formData.get('url'),
+        isPublic: formData.get('isPublic') === 'on',
         projectId: formData.get('projectId'),
-        descripcion: formData.get('descripcion')
     };
 
-    const validatedFields = productSchema.safeParse(rawData);
+    try {
+        const validatedFields = productSchema.parse(rawData);
+        const { projectId, ...productData } = validatedFields;
 
-    if (!validatedFields.success) {
-        return {
-            message: 'Error: Revisa los campos del formulario de producto.',
-            errors: validatedFields.error.flatten().fieldErrors,
-            fields: rawData, // Return the raw data to repopulate the form
+        const projectIndex = mockProjects.findIndex(p => p.id === projectId);
+        if (projectIndex === -1) {
+            return { message: 'Error: El proyecto asociado no fue encontrado.' };
+        }
+
+        const newProduct = {
+            ...productData,
+            id: `prod-${Date.now()}`,
+            status: 'PENDIENTE' as const,
         };
+
+        mockProjects[projectIndex].products.push(newProduct);
+        console.log(`New product added to project ${projectId}`);
+
+    } catch (error) {
+        if (error instanceof z.ZodError) {
+            return {
+                message: 'Error: Revisa los campos del formulario de producto.',
+                errors: error.flatten().fieldErrors,
+                fields: rawData,
+            };
+        }
+        return { message: GENERIC_ERROR_MESSAGE };
     }
 
-    const { projectId, ...productData } = validatedFields.data;
-
-    const projectIndex = mockProjects.findIndex(p => p.id === projectId);
-
-    if (projectIndex === -1) {
-        return { message: 'Error: El proyecto asociado no fue encontrado.' };
-    }
-
-    const newProduct = {
-        ...productData,
-        id: `prod-${Date.now()}`,
-        status: 'PENDIENTE' as const, // Default status
-    };
-
-    mockProjects[projectIndex].products.push(newProduct);
-
-    console.log(`New product added to project ${projectId}`);
-    
-    // Revalidate the edit page to show the new product
-    revalidatePath(`/projects/${projectId}/edit`);
-
-    return { message: '¡Producto derivado añadido con éxito!', errors: null, fields: null };
+    // On success, redirect back to the project edit page.
+    // This ensures fresh data is loaded.
+    redirect(`/projects/${rawData.projectId}/edit`);
 }

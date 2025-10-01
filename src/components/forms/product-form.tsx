@@ -3,7 +3,6 @@
 
 import { useActionState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
 
 import { createProductAction, type ProductFormState } from "@/lib/actions";
 
@@ -16,52 +15,41 @@ import { Switch } from "@/components/ui/switch";
 import type { Product } from "@/lib/definitions";
 import { productTypeLabels } from "@/lib/utils";
 
-function SubmitButton({ isEditing }: { isEditing?: boolean }) {
+function SubmitButton() {
   return (
     <Button type="submit" className="w-full sm:w-auto">
-      {isEditing ? "Guardar Cambios" : "Crear Producto"}
+      Crear Producto
     </Button>
   );
 }
 
 type ProductFormProps = {
-  product?: Product;
   projectId: string;
 }
 
-const initialState: ProductFormState = { message: '', errors: null, fields: null };
+const initialState: ProductFormState = { message: null, errors: null, fields: null };
 
-export function ProductForm({ product, projectId }: ProductFormProps) {
+export function ProductForm({ projectId }: ProductFormProps) {
   const { toast } = useToast();
-  const router = useRouter();
   const [state, formAction] = useActionState(createProductAction, initialState);
-  
-  const isEditing = !!product;
 
   useEffect(() => {
-    if (state.message) {
-      if (state.errors) {
-        toast({
-          title: "Error de Validación",
-          description: state.message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Éxito",
-          description: state.message,
-        });
-        // On successful creation, redirect back to the project edit page
-        router.push(`/projects/${projectId}/edit`);
-      }
+    // This effect now ONLY handles validation errors.
+    // Success is handled by the server-side redirect.
+    if (state?.message && state.errors) {
+      toast({
+        title: "Error de Validación",
+        description: state.message,
+        variant: "destructive",
+      });
     }
-  }, [state, router, toast, projectId]);
+  }, [state, toast]);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline text-2xl">{isEditing ? "Editar Producto" : "Crear Nuevo Producto"}</CardTitle>
-        <CardDescription>{isEditing ? "Modifica los detalles del producto." : "Rellena los detalles del nuevo producto derivado."}</CardDescription>
+        <CardTitle className="font-headline text-2xl">Crear Nuevo Producto</CardTitle>
+        <CardDescription>Rellena los detalles del nuevo producto derivado.</CardDescription>
       </CardHeader>
       <CardContent>
           <form
@@ -69,17 +57,16 @@ export function ProductForm({ product, projectId }: ProductFormProps) {
             className="space-y-8"
           >
             <input type="hidden" name="projectId" value={projectId} />
-            {isEditing && <input type="hidden" name="id" value={product.id} />}
 
             <div className="space-y-2">
               <label htmlFor="titulo" className="font-medium">Título del Producto</label>
-              <Input id="titulo" name="titulo" placeholder="Ej: Artículo científico sobre IA" defaultValue={state.fields?.titulo || product?.titulo} />
+              <Input id="titulo" name="titulo" placeholder="Ej: Artículo científico sobre IA" defaultValue={state.fields?.titulo} />
               {state.errors?.titulo && <p className="text-sm text-destructive">{state.errors.titulo.join(', ')}</p>}
             </div>
 
             <div className="space-y-2">
               <label htmlFor="tipo" className="font-medium">Tipo de Producto</label>
-              <Select name="tipo" defaultValue={state.fields?.tipo || product?.tipo}>
+              <Select name="tipo" defaultValue={state.fields?.tipo}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona un tipo de producto" />
                 </SelectTrigger>
@@ -94,13 +81,13 @@ export function ProductForm({ product, projectId }: ProductFormProps) {
 
             <div className="space-y-2">
               <label htmlFor="descripcion" className="font-medium">Descripción</label>
-              <Textarea id="descripcion" name="descripcion" placeholder="Una descripción detallada del producto..." rows={6} defaultValue={state.fields?.descripcion || product?.descripcion} />
+              <Textarea id="descripcion" name="descripcion" placeholder="Una descripción detallada del producto..." rows={6} defaultValue={state.fields?.descripcion} />
                {state.errors?.descripcion && <p className="text-sm text-destructive">{state.errors.descripcion.join(', ')}</p>}
             </div>
 
             <div className="space-y-2">
                 <label htmlFor="url" className="font-medium">URL del Producto (Opcional)</label>
-                <Input id="url" name="url" placeholder="https://ejemplo.com/producto..." defaultValue={state.fields?.url || product?.url} />
+                <Input id="url" name="url" placeholder="https://ejemplo.com/producto..." defaultValue={state.fields?.url} />
                 {state.errors?.url && <p className="text-sm text-destructive">{state.errors.url.join(', ')}</p>}
             </div>
 
@@ -109,11 +96,11 @@ export function ProductForm({ product, projectId }: ProductFormProps) {
                     <label htmlFor="isPublic" className="font-medium">Visible Públicamente</label>
                     <p className="text-sm text-muted-foreground">Permitir que sea visible en el portal público.</p>
                 </div>
-                <Switch id="isPublic" name="isPublic" defaultChecked={state.fields?.isPublic || product?.isPublic} />
+                <Switch id="isPublic" name="isPublic" defaultChecked={state.fields?.isPublic} />
             </div>
 
             <div className="flex justify-end">
-              <SubmitButton isEditing={isEditing} />
+              <SubmitButton />
             </div>
           </form>
       </CardContent>
