@@ -1,8 +1,7 @@
 
 "use client";
 
-import { useFormState } from "react-dom";
-import { useEffect } from "react";
+import { useActionState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 
@@ -35,7 +34,7 @@ const initialState: ProductFormState = { message: '', errors: null, fields: null
 export function ProductForm({ product, projectId }: ProductFormProps) {
   const { toast } = useToast();
   const router = useRouter();
-  const [state, formAction] = useFormState(createProductAction, initialState);
+  const [state, formAction] = useActionState(createProductAction, initialState);
   
   const isEditing = !!product;
 
