@@ -4,7 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from 'next/navigation';
 
-import { productSchema } from "./validations";
+import { projectSchema, productSchema } from "./validations";
 import { mockProjects, mockUsers } from "./mock-data";
 import type { AIResult, FormState, ProductFormState } from "./definitions";
 
@@ -17,7 +17,7 @@ const GENERIC_ERROR_MESSAGE = "Ocurrió un error inesperado. Por favor, inténta
  * @param data The project data.
  * @returns A promise that resolves with the AI evaluation result.
  */
-async function getAIAssessment(data: z.infer<typeof productSchema>): Promise<AIResult> {
+async function getAIAssessment(data: z.infer<typeof projectSchema>): Promise<AIResult> {
   console.log("Simulating AI assessment for:", data.titulo);
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 1500));
@@ -193,8 +193,12 @@ export async function createProductAction(prevState: ProductFormState, formData:
         }
         return { message: GENERIC_ERROR_MESSAGE };
     }
+    
+    const projectId = rawData.projectId as string;
 
-    // On success, redirect back to the project edit page.
-    // This ensures fresh data is loaded.
-    redirect(`/projects/${rawData.projectId}/edit`);
+    // Invalidate the cache for the project edit page.
+    revalidatePath(`/projects/${projectId}/edit`);
+
+    // Redirect back to the project edit page.
+    redirect(`/projects/${projectId}/edit`);
 }
